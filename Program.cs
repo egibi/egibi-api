@@ -1,3 +1,7 @@
+#nullable disable
+using egibi_api.Data;
+using egibi_api.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace egibi_api
 {
@@ -5,11 +9,46 @@ namespace egibi_api
     {
         public static void Main(string[] args)
         {
+            var CorsPolicyDev = "_corsPolicyDev";
             var builder = WebApplication.CreateBuilder(args);
+            string env = builder.Environment.EnvironmentName;
+            string dbConnectionString = "";
+
+            if (builder.Environment.IsProduction())
+            {
+                dbConnectionString = builder.Configuration.GetConnectionString("prod_connectionstring");
+
+                builder.Services.AddDbContextPool<EgibiDbContext>(options =>
+                    options.UseNpgsql(builder.Configuration.GetConnectionString(dbConnectionString)));
+            }
+
+            if (builder.Environment.IsDevelopment())
+            {
+                dbConnectionString = builder.Configuration.GetConnectionString("EgibiDb");
+
+                builder.Services.AddDbContextPool<EgibiDbContext>(options =>
+                    options.UseNpgsql(builder.Configuration.GetConnectionString(dbConnectionString)));
+
+                builder.Services.AddCors(options =>
+                {
+                    options.AddPolicy(name: CorsPolicyDev,
+                        policy =>
+                        {
+                            policy.AllowAnyOrigin();
+                            policy.AllowAnyHeader();
+                            policy.AllowAnyMethod();
+                        });
+                });
+            }
+
 
             // Add services to the container.
+            builder.Services.AddScoped<OverviewService>();
+
 
             builder.Services.AddControllers();
+
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -23,12 +62,15 @@ namespace egibi_api
                 app.UseSwaggerUI();
             }
 
+            if (builder.Environment.IsDevelopment())
+            {
+                app.UseCors(CorsPolicyDev);
+            }
+
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
+
 
             app.Run();
         }
