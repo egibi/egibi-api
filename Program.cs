@@ -14,8 +14,14 @@ namespace egibi_api
             string env = builder.Environment.EnvironmentName;
             string dbConnectionString = "";
 
+            builder.Services.Configure<ConfigOptions>(builder.Configuration.GetSection("ConfigOptions"));
+
+            Console.WriteLine($"env={builder.Environment.EnvironmentName}");
+
             if (builder.Environment.IsProduction())
             {
+
+
                 dbConnectionString = builder.Configuration.GetConnectionString("prod_connectionstring");
 
                 builder.Services.AddDbContextPool<EgibiDbContext>(options =>
@@ -26,8 +32,11 @@ namespace egibi_api
             {
                 dbConnectionString = builder.Configuration.GetConnectionString("EgibiDb");
 
+                Console.WriteLine($"ConnectionString={dbConnectionString}");
+
+
                 builder.Services.AddDbContextPool<EgibiDbContext>(options =>
-                    options.UseNpgsql(builder.Configuration.GetConnectionString(dbConnectionString)));
+                    options.UseNpgsql(dbConnectionString));
 
                 builder.Services.AddCors(options =>
                 {
@@ -43,7 +52,7 @@ namespace egibi_api
 
 
             // Add services to the container.
-            builder.Services.AddScoped<OverviewService>();
+            builder.Services.AddScoped<ConnectionsService>();
 
 
             builder.Services.AddControllers();
