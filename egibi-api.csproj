@@ -8,6 +8,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ApiModels\**" />
+    <Compile Remove="ClientModels\**" />
+    <Compile Remove="SDKs\**" />
+    <Content Remove="ApiModels\**" />
+    <Content Remove="ClientModels\**" />
+    <Content Remove="SDKs\**" />
+    <EmbeddedResource Remove="ApiModels\**" />
+    <EmbeddedResource Remove="ClientModels\**" />
+    <EmbeddedResource Remove="SDKs\**" />
+    <None Remove="ApiModels\**" />
+    <None Remove="ClientModels\**" />
+    <None Remove="SDKs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Binance.Net" Version="10.16.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
@@ -16,12 +31,6 @@
     <PackageReference Include="Npgsql" Version="9.0.1" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ApiModels\" />
-    <Folder Include="ClientModels\" />
-    <Folder Include="SDKs\" />
   </ItemGroup>
 
 </Project>

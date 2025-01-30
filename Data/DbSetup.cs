@@ -38,7 +38,8 @@ namespace egibi_api.Data
                 new Connection
                 {
                     ConnectionID = 3,
-                    Name = "Charles Schwab"
+                    Name = "Charles Schwab",
+                    ConnectionTypeID = 1
                 }
             };
 

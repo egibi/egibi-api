@@ -15,31 +15,31 @@ namespace egibi_api.Controllers
             _connectionsService = connectionsService;
         }
 
-        [HttpGet(Name = "get-connections")]
+        [HttpGet("get-connections")]
         public async Task<RequestResponse> GetConnections()
         {
             return await _connectionsService.GetConnections();
         }
 
-        [HttpGet(Name = "get-connection")]
-        public async Task<RequestResponse>GetConnection(int connectionId)
+        [HttpGet("get-connection")]
+        public async Task<RequestResponse> GetConnection(int connectionId)
         {
             return await _connectionsService.GetConnection(connectionId);
         }
 
-        [HttpPost(Name = "save-connection")]
+        [HttpPost("save-connection")]
         public async Task<RequestResponse> SaveConnection(Connection connection)
         {
             return await _connectionsService.SaveConnection(connection);
         }
-
-        [HttpDelete(Name = "delete-connections")]
+        
+        [HttpDelete("delete-connections")]
         public async Task<RequestResponse> DeleteConnections(List<int> connectionIds)
         {
             return await _connectionsService.DeleteConnections(connectionIds);
         }
 
-        [HttpDelete(Name = "delete-connection")]
+        [HttpDelete("delete-connection")]
         public async Task<RequestResponse> DeleteConnection(int connectionId)
         {
             return await _connectionsService.DeleteConnection(connectionId);
