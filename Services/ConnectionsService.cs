@@ -22,14 +22,16 @@ namespace egibi_api.Services
         {
             try
             {
-                List<Connection> connections = await _db.Connections.ToListAsync();
+                List<Connection> connections = await _db.Connections
+                    .Include("ConnectionType")
+                    .ToListAsync();
 
-                connections.ForEach(connection =>
-                {
-                    connection.ApiSecretKey =
-                        !string.IsNullOrWhiteSpace(connection.ApiKey) ?
-                        Encryptor.DecryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword) : null;
-                });
+                //connections.ForEach(connection =>
+                //{
+                //    connection.ApiSecretKey =
+                //        !string.IsNullOrWhiteSpace(connection.ApiKey) ?
+                //        Encryptor.DecryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword) : null;
+                //});
 
                 return new RequestResponse(connections, 200, "OK");
 
@@ -44,10 +46,25 @@ namespace egibi_api.Services
         {
             try
             {
-                var connection = await _db.Connections.FirstOrDefaultAsync(x => x.ConnectionID == connectionId);
+                var connection = await _db.Connections
+                    .Include("ConnectionType")
+                    .FirstOrDefaultAsync(x => x.ConnectionID == connectionId);
                 return new RequestResponse(connection, 200, "OK");
             }
             catch (Exception ex)
+            {
+                return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
+            }
+        }
+
+        public async Task<RequestResponse> GetConnectionTypes()
+        {
+            try
+            {
+                var connectionTypes = await _db.ConnectionTypes.ToListAsync();
+                return new RequestResponse(connectionTypes, 200, "OK");
+            }
+            catch(Exception ex)
             {
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
@@ -97,6 +114,8 @@ namespace egibi_api.Services
 
         private async Task<RequestResponse> CreateNewConnection(Connection connection)
         {
+            int unknownConnectionId = _db.ConnectionTypes.FirstOrDefault(f => f.Name == "unknown").ConnectionTypeID;
+
             Connection newConnection = new Connection
             {
                 Name = connection.Name,
@@ -104,8 +123,12 @@ namespace egibi_api.Services
                 ConnectionTypeID = connection.ConnectionTypeID,
                 BaseUrl = connection.BaseUrl,
                 ApiKey = connection.ApiKey,
-                ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword)
+                //ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword)
+                ApiSecretKey = connection.ApiSecretKey
             };
+
+            if (newConnection.ConnectionTypeID == 0)
+                newConnection.ConnectionTypeID = unknownConnectionId;
 
             try
             {
@@ -131,7 +154,8 @@ namespace egibi_api.Services
             existingConnection.ConnectionTypeID = connection.ConnectionTypeID;
             existingConnection.BaseUrl = connection.BaseUrl;
             existingConnection.ApiKey = connection.ApiKey;
-            existingConnection.ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword);
+            //existingConnection.ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword);
+            existingConnection.ApiSecretKey = connection.ApiSecretKey;
 
             try
             {

@@ -11,6 +11,12 @@ namespace egibi_api.Data
                 new ConnectionType
                 {
                     ConnectionTypeID = 1,
+                    Name = "unknown",
+                    Description = "unknown connection type"
+                },
+                new ConnectionType
+                {
+                    ConnectionTypeID = 2,
                     Name = "api",
                     Description = "Connection properties for a 3rd party API"
                 }

@@ -7,6 +7,6 @@ namespace egibi_api.Data.Entities
         public string Name { get; set; }
         public string Description { get; set; }
         
-        public ICollection<Connection> Connections { get; set; }
+        //public ICollection<Connection> Connections { get; set; }
     }
 }

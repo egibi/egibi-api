@@ -27,6 +27,12 @@ namespace egibi_api.Controllers
             return await _connectionsService.GetConnection(connectionId);
         }
 
+        [HttpGet("get-connection-types")]
+        public async Task<RequestResponse> GetConnectionTypes()
+        {
+            return await _connectionsService.GetConnectionTypes();
+        }
+
         [HttpPost("save-connection")]
         public async Task<RequestResponse> SaveConnection(Connection connection)
         {
@@ -40,9 +46,9 @@ namespace egibi_api.Controllers
         }
 
         [HttpDelete("delete-connection")]
-        public async Task<RequestResponse> DeleteConnection(int connectionId)
+        public async Task<RequestResponse> DeleteConnection(int id)
         {
-            return await _connectionsService.DeleteConnection(connectionId);
+            return await _connectionsService.DeleteConnection(id);
         }
     }
 }

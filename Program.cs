@@ -13,7 +13,7 @@ namespace egibi_api
             var builder = WebApplication.CreateBuilder(args);
             string env = builder.Environment.EnvironmentName;
             string dbConnectionString = "";
-
+            
             builder.Services.Configure<ConfigOptions>(builder.Configuration.GetSection("ConfigOptions"));
 
             Console.WriteLine($"env={builder.Environment.EnvironmentName}");
