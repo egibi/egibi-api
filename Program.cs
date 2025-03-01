@@ -13,6 +13,7 @@ namespace egibi_api
             var builder = WebApplication.CreateBuilder(args);
             string env = builder.Environment.EnvironmentName;
             string dbConnectionString = "";
+            string questDbConnectionString = "";
             
             builder.Services.Configure<ConfigOptions>(builder.Configuration.GetSection("ConfigOptions"));
 
@@ -20,8 +21,6 @@ namespace egibi_api
 
             if (builder.Environment.IsProduction())
             {
-
-
                 dbConnectionString = builder.Configuration.GetConnectionString("prod_connectionstring");
 
                 builder.Services.AddDbContextPool<EgibiDbContext>(options =>
@@ -52,11 +51,11 @@ namespace egibi_api
 
 
             // Add services to the container.
+            builder.Services.AddScoped<ApiTesterService>();
             builder.Services.AddScoped<ConnectionsService>();
-
-
+            builder.Services.AddScoped<BacktesterService>();
+            
             builder.Services.AddControllers();
-
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();

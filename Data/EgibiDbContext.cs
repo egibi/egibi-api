@@ -1,7 +1,5 @@
 ﻿using egibi_api.Data.Entities;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace egibi_api.Data
 {
