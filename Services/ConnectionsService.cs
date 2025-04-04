@@ -124,7 +124,8 @@ namespace egibi_api.Services
                 BaseUrl = connection.BaseUrl,
                 ApiKey = connection.ApiKey,
                 //ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword)
-                ApiSecretKey = connection.ApiSecretKey
+                ApiSecretKey = connection.ApiSecretKey,
+                IsDataSource = connection.IsDataSource
             };
 
             if (newConnection.ConnectionTypeID == 0)
@@ -156,6 +157,7 @@ namespace egibi_api.Services
             existingConnection.ApiKey = connection.ApiKey;
             //existingConnection.ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword);
             existingConnection.ApiSecretKey = connection.ApiSecretKey;
+            existingConnection.IsDataSource = connection.IsDataSource;
 
             try
             {

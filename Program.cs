@@ -1,6 +1,7 @@
 #nullable disable
 using egibi_api.Data;
 using egibi_api.Services;
+using EgibiBinanceUsSdk;
 using Microsoft.EntityFrameworkCore;
 
 namespace egibi_api
@@ -33,7 +34,6 @@ namespace egibi_api
 
                 Console.WriteLine($"ConnectionString={dbConnectionString}");
 
-
                 builder.Services.AddDbContextPool<EgibiDbContext>(options =>
                     options.UseNpgsql(dbConnectionString));
 
@@ -51,6 +51,7 @@ namespace egibi_api
 
 
             // Add services to the container.
+            builder.Services.AddHttpClient<BinanceUsHttpClient>();
             builder.Services.AddScoped<ApiTesterService>();
             builder.Services.AddScoped<ConnectionsService>();
             builder.Services.AddScoped<BacktesterService>();

@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EgibiCoinbaseSdk", "..\Egib
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EgibiCoreLibrary", "..\EgibiCoreLibrary\EgibiCoreLibrary.csproj", "{6C6A9A7D-AAE6-4407-8C53-EE68DA487D6A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EgibiBinanceUsSdk", "..\EgibiBinanceUsSdk\EgibiBinanceUsSdk.csproj", "{3E9B0EAD-1A8F-4C81-B111-5DBAF9A2910B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{6C6A9A7D-AAE6-4407-8C53-EE68DA487D6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C6A9A7D-AAE6-4407-8C53-EE68DA487D6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C6A9A7D-AAE6-4407-8C53-EE68DA487D6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E9B0EAD-1A8F-4C81-B111-5DBAF9A2910B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E9B0EAD-1A8F-4C81-B111-5DBAF9A2910B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E9B0EAD-1A8F-4C81-B111-5DBAF9A2910B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E9B0EAD-1A8F-4C81-B111-5DBAF9A2910B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

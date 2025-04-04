@@ -24,6 +24,8 @@
 
   <ItemGroup>
     <PackageReference Include="Binance.Net" Version="10.16.1" />
+    <PackageReference Include="Coinbase" Version="6.0.1" />
+    <PackageReference Include="Coinbase.Pro" Version="4.2.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -35,6 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EgibiBinanceUsSdk\EgibiBinanceUsSdk.csproj" />
     <ProjectReference Include="..\EgibiCoinbaseSDK\EgibiCoinbaseSdk.csproj" />
     <ProjectReference Include="..\EgibiCoreLibrary\EgibiCoreLibrary.csproj" />
   </ItemGroup>

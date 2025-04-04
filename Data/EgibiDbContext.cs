@@ -14,11 +14,8 @@ namespace egibi_api.Data
 
             base.OnModelCreating(modelBuilder);
 
-            
-
             modelBuilder.Entity<ConnectionType>().HasData(DbSetup.GetConnectionTypes());
             modelBuilder.Entity<Connection>().HasData(DbSetup.GetConnections());
-
         }
 
         public EgibiDbContext(DbContextOptions<EgibiDbContext> options) : base(options) { }

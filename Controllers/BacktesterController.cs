@@ -45,5 +45,11 @@ namespace egibi_api.Controllers
         {
             return null;
         }
+
+        [HttpGet("get-data-sources")]
+        public async Task<RequestResponse> GetDataSources()
+        {
+            return await _backtesterService.GetDataSources();
+        }
     }
 }

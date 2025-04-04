@@ -33,19 +33,22 @@ namespace egibi_api.Data
                 {
                     ConnectionID = 1,
                     Name = "Binance US",
-                    ConnectionTypeID = 1
+                    ConnectionTypeID = 1,
+                    IsDataSource = true
                 },
                 new Connection
                 {
                     ConnectionID = 2,
                     Name = "Coinbase",
-                    ConnectionTypeID = 1
+                    ConnectionTypeID = 1,
+                    IsDataSource = true
                 },
                 new Connection
                 {
                     ConnectionID = 3,
                     Name = "Charles Schwab",
-                    ConnectionTypeID = 1
+                    ConnectionTypeID = 1,
+                    IsDataSource = false
                 }
             };
 
