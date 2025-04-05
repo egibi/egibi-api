@@ -22,5 +22,7 @@ namespace egibi_api.Data
         
         public DbSet<Connection> Connections { get; set; }
         public DbSet<ConnectionType> ConnectionTypes { get; set; }
+        public DbSet<Strategy> Strategies { get; set; }
+        public DbSet<Backtest> Backtests { get; set; }
     }
 }
