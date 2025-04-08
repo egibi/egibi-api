@@ -1,4 +1,5 @@
 ﻿#nullable disable
+using egibi_api.Data.Entities;
 using egibi_api.Services;
 using EgibiCoreLibrary;
 using Microsoft.AspNetCore.Mvc;
@@ -19,37 +20,43 @@ namespace egibi_api.Controllers
         [HttpGet("get-backtests")]
         public async Task<RequestResponse> GetBacktests()
         {
-            return null;
+            return await _backtesterService.GetBacktests();
         }
 
         [HttpGet("get-backtest")]
         public async Task<RequestResponse> GetBacktest(int backtestId)
         {
-            return null;
+            return await _backtesterService.GetBacktest(backtestId);
         }
 
-        [HttpPost("create-backtest")]
-        public async Task<RequestResponse> CreateBacktest()
+        [HttpPost("save-backtest")]
+        public async Task<RequestResponse> SaveBacktest(Backtest backtest)
         {
-            return null;
-        }
-
-        [HttpPost("run-backtest")]
-        public async Task<RequestResponse> RunBacktest()
-        {
-            return null;
+            return await _backtesterService.SaveBacktest(backtest);
         }
 
         [HttpDelete("delete-backtest")]
-        public async Task<RequestResponse> DeleteBacktest(int id)
+        public async Task<RequestResponse> DeleteBacktest(int backtestId)
         {
-            return null;
+            return await _backtesterService.DeleteBacktest(backtestId);
+        }
+
+        [HttpDelete("delete-backtests")]
+        public async Task<RequestResponse> DeleteBacktests(List<int> backtestIds)
+        {
+            return await _backtesterService.DeleteBacktests(backtestIds);
         }
 
         [HttpGet("get-data-sources")]
         public async Task<RequestResponse> GetDataSources()
         {
             return await _backtesterService.GetDataSources();
+        }
+
+        [HttpPost("run-backtest")]
+        public async Task<RequestResponse> RunBacktest()
+        {
+            return null;
         }
     }
 }
