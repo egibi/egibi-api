@@ -37,7 +37,6 @@ namespace egibi_api.Services
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }
-
         public async Task<RequestResponse> GetBacktests()
         {
             try
@@ -52,7 +51,6 @@ namespace egibi_api.Services
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }
-
         public async Task<RequestResponse> GetBacktest(int backtestId)
         {
             try
@@ -61,12 +59,11 @@ namespace egibi_api.Services
                     .FirstOrDefaultAsync(x => x.BacktestID == backtestId);
                 return new RequestResponse(backtest, 200, "OK");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }
-
         public async Task<RequestResponse> DeleteBacktest(int backtestId)
         {
             try
@@ -83,7 +80,6 @@ namespace egibi_api.Services
                 return new RequestResponse(backtestId, 500, "Problem Deleting", new ResponseError(ex));
             }
         }
-
         public async Task<RequestResponse> DeleteBacktests(List<int> backtestIds)
         {
             try
@@ -99,7 +95,6 @@ namespace egibi_api.Services
                 return new RequestResponse(backtestIds, 500, "Problem Deleting", new ResponseError(ex));
             }
         }
-
         public async Task<RequestResponse> SaveBacktest(Backtest backtest)
         {
             if (backtest.BacktestID == 0)
@@ -131,7 +126,6 @@ namespace egibi_api.Services
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }
-
         private async Task<RequestResponse> UpdateExistingBacktest(Backtest backtest)
         {
             Backtest existingBacktest = await _db.Backtests

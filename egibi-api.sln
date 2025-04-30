@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EgibiBinanceUsSdk", "..\Egi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EgibiStrategyLibrary", "..\EgibiStrategyLibrary\EgibiStrategyLibrary.csproj", "{75AD80DC-5DF1-4E5B-8314-96FEB4930E93}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EgibiQuestDB", "..\EgibiQuestDB\EgibiQuestDB.csproj", "{26CDA8F7-6EC1-4726-8813-8451246B5508}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{75AD80DC-5DF1-4E5B-8314-96FEB4930E93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75AD80DC-5DF1-4E5B-8314-96FEB4930E93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75AD80DC-5DF1-4E5B-8314-96FEB4930E93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26CDA8F7-6EC1-4726-8813-8451246B5508}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26CDA8F7-6EC1-4726-8813-8451246B5508}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26CDA8F7-6EC1-4726-8813-8451246B5508}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26CDA8F7-6EC1-4726-8813-8451246B5508}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

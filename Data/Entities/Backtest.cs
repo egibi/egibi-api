@@ -12,5 +12,8 @@ namespace egibi_api.Data.Entities
         public int? ConnectionId { get; set; }
         public virtual Connection Connection { get; set; }
 
+        public int? StrategyId { get; set; }
+        public virtual Strategy Strategy { get; set; }
+
     }
 }

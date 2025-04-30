@@ -58,5 +58,11 @@ namespace egibi_api.Controllers
         {
             return null;
         }
+
+        [HttpPost("upload-historical-data-file")]
+        public async Task<RequestResponse> UploadHistoricalDataFile()
+        {
+            return null;
+        }
     }
 }

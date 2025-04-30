@@ -23,23 +23,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Binance.Net" Version="10.16.1" />
+    <PackageReference Include="Binance.Net" Version="10.19.1" />
     <PackageReference Include="Coinbase" Version="6.0.1" />
     <PackageReference Include="Coinbase.Pro" Version="4.2.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="net-questdb-client" Version="2.1.0" />
-    <PackageReference Include="Npgsql" Version="9.0.1" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Npgsql" Version="9.0.3" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\EgibiBinanceUsSdk\EgibiBinanceUsSdk.csproj" />
     <ProjectReference Include="..\EgibiCoinbaseSDK\EgibiCoinbaseSdk.csproj" />
     <ProjectReference Include="..\EgibiCoreLibrary\EgibiCoreLibrary.csproj" />
+    <ProjectReference Include="..\EgibiQuestDB\EgibiQuestDB.csproj" />
   </ItemGroup>
 
 </Project>

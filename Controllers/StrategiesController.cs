@@ -45,5 +45,11 @@ namespace egibi_api.Controllers
         {
             return await _strategiesService.DeleteStrategy(id);
         }
+
+        [HttpPost("run-strategy")]
+        public async Task<RequestResponse> RunStrategy(int id)
+        {
+            return null;
+        }
     }
 }

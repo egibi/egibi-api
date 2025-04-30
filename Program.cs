@@ -54,8 +54,10 @@ namespace egibi_api
             builder.Services.AddHttpClient<BinanceUsHttpClient>();
             builder.Services.AddScoped<ApiTesterService>();
             builder.Services.AddScoped<ConnectionsService>();
+            builder.Services.AddScoped<DataManagerService>();
             builder.Services.AddScoped<StrategiesService>();
             builder.Services.AddScoped<BacktesterService>();
+
             
             builder.Services.AddControllers();
 
