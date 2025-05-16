@@ -18,12 +18,15 @@ namespace egibi_api.Controllers
         }
 
         [HttpPost("drop-file")]
+        [DisableRequestSizeLimit] // TODO: If moved to hosting provider, setup tool or something to upload directly
         public async Task DropFile(IFormFile file)
         {
             if(file == null || file.Length == 0)
             {
                 // return bad request
-            }            
+            }
+
+            await _dataManagerService.SaveFile(file);
         }
     }
 }

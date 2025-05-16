@@ -1,7 +1,7 @@
 ﻿#nullable disable
 using egibi_api.Data;
 using egibi_api.Data.Entities;
-using EgibiCoreLibrary;
+using EgibiCoreLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 

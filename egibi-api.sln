@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EgibiBinanceUsSdk", "..\Egi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EgibiStrategyLibrary", "..\EgibiStrategyLibrary\EgibiStrategyLibrary.csproj", "{75AD80DC-5DF1-4E5B-8314-96FEB4930E93}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EgibiQuestDB", "..\EgibiQuestDB\EgibiQuestDB.csproj", "{26CDA8F7-6EC1-4726-8813-8451246B5508}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EgibiQuestDbHandler", "..\EgibiQuestDB\EgibiQuestDbHandler.csproj", "{26CDA8F7-6EC1-4726-8813-8451246B5508}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

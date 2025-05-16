@@ -1,8 +1,8 @@
 ﻿#nullable disable
 using egibi_api.Data;
-using EgibiCoreLibrary;
 using Microsoft.Extensions.Options;
 using EgibiBinanceUsSdk;
+using EgibiCoreLibrary.Models;
 
 namespace egibi_api.Services
 

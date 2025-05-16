@@ -1,8 +1,9 @@
 ﻿#nullable disable
 using egibi_api.Data;
-using EgibiCoreLibrary;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using EgibiQuestDB;
+using EgibiCoreLibrary.Models;
 
 namespace egibi_api.Services
 {
@@ -17,8 +18,11 @@ namespace egibi_api.Services
             _configOptions = configOptions.Value;
         }
 
-        public async Task<RequestResponse> SaveFile()
+        public async Task<RequestResponse> SaveFile(IFormFile file)
         {
+            var ingester = new Ingester("connectionString");
+            ingester.LoadCsv(file);
+
             return new RequestResponse(null, null,"OK");
         }
     }

@@ -3,6 +3,7 @@ using egibi_api.Data;
 using egibi_api.Services;
 using EgibiBinanceUsSdk;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace egibi_api
 {
@@ -57,6 +58,12 @@ namespace egibi_api
             builder.Services.AddScoped<DataManagerService>();
             builder.Services.AddScoped<StrategiesService>();
             builder.Services.AddScoped<BacktesterService>();
+
+            // Allow large form limits. Will need to handle differently in future if hosted non-locally
+            builder.Services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = long.MaxValue;
+            });
 
             
             builder.Services.AddControllers();

@@ -2,10 +2,10 @@
 using egibi_api.Data.Entities;
 using egibi_api.Services;
 using Microsoft.AspNetCore.Mvc;
-using EgibiCoreLibrary;
 using Microsoft.AspNetCore.DataProtection;
 using System.Security.Cryptography;
 using System.Text;
+using EgibiCoreLibrary.Models;
 
 namespace egibi_api.Controllers
 {

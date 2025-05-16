@@ -1,6 +1,6 @@
 ﻿using egibi_api.Data.Entities;
 using egibi_api.Services;
-using EgibiCoreLibrary;
+using EgibiCoreLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace egibi_api.Controllers
