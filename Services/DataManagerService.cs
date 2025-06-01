@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using EgibiQuestDB;
 using EgibiCoreLibrary.Models;
 using egibi_api.Data.Entities;
+using CryptoExchange.Net.Interfaces;
 
 namespace egibi_api.Services
 {
@@ -157,11 +158,23 @@ namespace egibi_api.Services
                 DataFormatTypeId = dataProvider.DataFormatTypeId,
                 DataFrequencyTypeId = dataProvider.DataFrequencyTypeId,
                 IsActive = true,
-                Start = dataProvider.Start,
-                End = dataProvider.End,
+                Start = dataProvider.Start?.ToUniversalTime(),
+                End = dataProvider.End?.ToUniversalTime(),
                 CreatedAt = DateTime.Now.ToUniversalTime(),
                 LastModifiedAt = null
             };
+
+            //DataProvider newDataProvider = new DataProvider();
+
+            //newDataProvider.Name = dataProvider.Name;
+            //newDataProvider.Description = dataProvider.Description;
+            //newDataProvider.Notes = dataProvider.Notes;
+            //newDataProvider.DataProviderTypeId = dataProvider.DataProviderTypeId;
+            //newDataProvider.DataFormatTypeId = dataProvider.DataFormatTypeId;
+            //newDataProvider.DataFrequencyTypeId = dataProvider.DataFrequencyTypeId;
+            //newDataProvider.IsActive = dataProvider.IsActive;
+            //newDataProvider.Start = dataProvider.Start?.ToUniversalTime();
+            //newDataProvider.End = dataProvider.End?.ToUniversalTime();
 
             try
             {
@@ -189,8 +202,8 @@ namespace egibi_api.Services
             existingDataProvider.DataFormatTypeId = dataProvider.DataFormatTypeId;
             existingDataProvider.DataFrequencyTypeId = dataProvider.DataFrequencyTypeId;
             existingDataProvider.IsActive = dataProvider.IsActive;
-            existingDataProvider.Start = dataProvider.Start;
-            existingDataProvider.End = dataProvider.End;
+            existingDataProvider.Start = dataProvider.Start?.ToUniversalTime();
+            existingDataProvider.End = dataProvider.End?.ToUniversalTime();
             existingDataProvider.LastModifiedAt = DateTime.Now.ToUniversalTime();
 
             try

@@ -18,10 +18,28 @@ namespace egibi_api.Controllers
             _dataManagerService = dataManagerService;
         }
 
+        [HttpGet("get-data-providers")]
+        public async Task<RequestResponse> GetDataProviders()
+        {
+            return await _dataManagerService.GetDataProviders();
+        }
+
+        [HttpGet("get-data-provider")]
+        public async Task<RequestResponse> GetDataProvider(int id)
+        {
+            return await _dataManagerService.GetDataProvider(id);
+        }
+
         [HttpPost("save-data-provider")]
         public async Task<RequestResponse> SaveDataProvider(DataProvider dataProvider)
         {
             return await _dataManagerService.SaveDataProvider(dataProvider);
+        }
+
+        [HttpDelete("delete-data-provider")]
+        public async Task<RequestResponse> DeleteDataProvider(int id)
+        {
+            return await _dataManagerService.DeleteDataProvider(id);
         }
 
         [HttpGet("get-data-provider-types")]
