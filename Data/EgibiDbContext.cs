@@ -16,6 +16,9 @@ namespace egibi_api.Data
 
             modelBuilder.Entity<ConnectionType>().HasData(DbSetup.GetConnectionTypes());
             modelBuilder.Entity<Connection>().HasData(DbSetup.GetConnections());
+            modelBuilder.Entity<DataFormatType>().HasData(DbSetup.GetDataFormatTypes());
+            modelBuilder.Entity<DataFrequencyType>().HasData(DbSetup.GetDataFrequencyTypes());
+            modelBuilder.Entity<DataProviderType>().HasData(DbSetup.GetDataProviderTypes());
         }
 
         public EgibiDbContext(DbContextOptions<EgibiDbContext> options) : base(options) { }
@@ -24,5 +27,9 @@ namespace egibi_api.Data
         public DbSet<ConnectionType> ConnectionTypes { get; set; }
         public DbSet<Strategy> Strategies { get; set; }
         public DbSet<Backtest> Backtests { get; set; }
+        public DbSet<DataProvider> DataProviders { get; set; }
+        public DbSet<DataProviderType> DataProviderTypes { get; set; }
+        public DbSet<DataFormatType> DataFormatTypes { get; set; }
+        public DbSet<DataFrequencyType> DataFrequencyTypes { get; set; }
     }
 }

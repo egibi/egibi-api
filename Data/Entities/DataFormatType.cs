@@ -1,8 +1,6 @@
 ﻿namespace egibi_api.Data.Entities
 {
-    public class ApiRateLimit : EntityBase
+    public class DataFormatType : EntityBase
     {
-
-
     }
 }

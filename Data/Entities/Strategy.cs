@@ -2,11 +2,8 @@
 
 namespace egibi_api.Data.Entities
 {
-    public class Strategy
+    public class Strategy : EntityBase
     {
-        public int StrategyID { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
         public string InstanceName { get; set; }
     }
 }

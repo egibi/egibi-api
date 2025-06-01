@@ -27,7 +27,7 @@ namespace egibi_api.Services
                     .Select(s => new SelectOptionModel()
                     {
                         Text = s.Name,
-                        Value = s.ConnectionID.ToString()
+                        Value = s.Id.ToString()
                     }).ToListAsync();
 
                 return new RequestResponse(dataSources, 200, "OK");
@@ -56,7 +56,7 @@ namespace egibi_api.Services
             try
             {
                 var backtest = await _db.Backtests
-                    .FirstOrDefaultAsync(x => x.BacktestID == backtestId);
+                    .FirstOrDefaultAsync(x => x.Id == backtestId);
                 return new RequestResponse(backtest, 200, "OK");
             }
             catch (Exception ex)
@@ -69,7 +69,7 @@ namespace egibi_api.Services
             try
             {
                 _db.Remove(_db.Backtests
-                    .Where(w => w.BacktestID == backtestId)
+                    .Where(w => w.Id == backtestId)
                     .FirstOrDefault());
                 await _db.SaveChangesAsync();
 
@@ -85,7 +85,7 @@ namespace egibi_api.Services
             try
             {
                 _db.RemoveRange(_db.Backtests
-                    .Where(w => backtestIds.Contains(w.BacktestID)));
+                    .Where(w => backtestIds.Contains(w.Id)));
                 await _db.SaveChangesAsync();
 
                 return new RequestResponse(backtestIds, 200, "Deleted");
@@ -97,7 +97,7 @@ namespace egibi_api.Services
         }
         public async Task<RequestResponse> SaveBacktest(Backtest backtest)
         {
-            if (backtest.BacktestID == 0)
+            if (backtest.Id == 0)
                 return await CreateNewBacktest(backtest);
             else
                 return await UpdateExistingBacktest(backtest);
@@ -129,7 +129,7 @@ namespace egibi_api.Services
         private async Task<RequestResponse> UpdateExistingBacktest(Backtest backtest)
         {
             Backtest existingBacktest = await _db.Backtests
-                .Where(w => w.BacktestID == backtest.BacktestID)
+                .Where(w => w.Id == backtest.Id)
                 .FirstOrDefaultAsync();
 
             existingBacktest.Name = backtest.Name;

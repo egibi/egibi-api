@@ -42,13 +42,13 @@ namespace egibi_api.Services
             }
         }
 
-        public async Task<RequestResponse> GetConnection(int connectionId)
+        public async Task<RequestResponse> GetConnection(int id)
         {
             try
             {
                 var connection = await _db.Connections
                     .Include("ConnectionType")
-                    .FirstOrDefaultAsync(x => x.ConnectionID == connectionId);
+                    .FirstOrDefaultAsync(x => x.Id == id);
                 return new RequestResponse(connection, 200, "OK");
             }
             catch (Exception ex)
@@ -72,55 +72,55 @@ namespace egibi_api.Services
 
         public async Task<RequestResponse> SaveConnection(Connection connection)
         {
-            if (connection.ConnectionID == 0)
+            if (connection.Id == 0)
                 return await CreateNewConnection(connection);
             else
                 return await UpdateExistingConnection(connection);
         }
 
-        public async Task<RequestResponse> DeleteConnection(int connectionId)
+        public async Task<RequestResponse> DeleteConnection(int id)
         {
             try
             {
                 _db.Remove(_db.Connections
-                    .Where(w => w.ConnectionID == connectionId)
+                    .Where(w => w.Id == id)
                     .FirstOrDefault());
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(connectionId, 200, "Deleted");
+                return new RequestResponse(id, 200, "Deleted");
             }
             catch (Exception ex)
             {
-                return new RequestResponse(connectionId, 500, "Problem Deleting", new ResponseError(ex));
+                return new RequestResponse(id, 500, "Problem Deleting", new ResponseError(ex));
             }
         }
 
-        public async Task<RequestResponse> DeleteConnections(List<int> connectionIds)
+        public async Task<RequestResponse> DeleteConnections(List<int> ids)
         {
             try
             {
                 _db.RemoveRange(_db.Connections
-                    .Where(w => connectionIds.Contains(w.ConnectionID)));
+                    .Where(w => ids.Contains(w.Id)));
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(connectionIds, 200, "Deleted");
+                return new RequestResponse(ids, 200, "Deleted");
             }
             catch (Exception ex)
             {
-                return new RequestResponse(connectionIds, 500, "Problem Deleting", new ResponseError(ex));
+                return new RequestResponse(ids, 500, "Problem Deleting", new ResponseError(ex));
             }
         }
 
 
         private async Task<RequestResponse> CreateNewConnection(Connection connection)
         {
-            int unknownConnectionId = _db.ConnectionTypes.FirstOrDefault(f => f.Name == "unknown").ConnectionTypeID;
+            int unknownConnectionId = _db.ConnectionTypes.FirstOrDefault(f => f.Name == "unknown").Id;
 
             Connection newConnection = new Connection
             {
                 Name = connection.Name,
                 Description = connection.Description,
-                ConnectionTypeID = connection.ConnectionTypeID,
+                Id = connection.Id,
                 BaseUrl = connection.BaseUrl,
                 ApiKey = connection.ApiKey,
                 //ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword)
@@ -128,8 +128,8 @@ namespace egibi_api.Services
                 IsDataSource = connection.IsDataSource
             };
 
-            if (newConnection.ConnectionTypeID == 0)
-                newConnection.ConnectionTypeID = unknownConnectionId;
+            if (newConnection.Id == 0)
+                newConnection.Id = unknownConnectionId;
 
             try
             {
@@ -147,12 +147,12 @@ namespace egibi_api.Services
         private async Task<RequestResponse> UpdateExistingConnection(Connection connection)
         {
             Connection existingConnection = await _db.Connections
-                .Where(w => w.ConnectionID == connection.ConnectionID)
+                .Where(w => w.Id == connection.Id)
                 .FirstOrDefaultAsync();
 
             existingConnection.Name = connection.Name;
             existingConnection.Description = connection.Description;
-            existingConnection.ConnectionTypeID = connection.ConnectionTypeID;
+            existingConnection.Id = connection.Id;
             existingConnection.BaseUrl = connection.BaseUrl;
             existingConnection.ApiKey = connection.ApiKey;
             //existingConnection.ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword);

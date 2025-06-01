@@ -33,12 +33,12 @@ namespace egibi_api.Services
             }
         }
 
-        public async Task<RequestResponse> GetStrategy(int strategyId)
+        public async Task<RequestResponse> GetStrategy(int id)
         {
             try
             {
                 var strategy = await _db.Strategies
-                    .FirstOrDefaultAsync(x => x.StrategyID == strategyId);
+                    .FirstOrDefaultAsync(x => x.Id == id);
                 return new RequestResponse(strategy, 200, "OK");
             }
             catch (Exception ex)
@@ -47,42 +47,42 @@ namespace egibi_api.Services
             }
         }
 
-        public async Task<RequestResponse> DeleteStrategy(int strategyId)
+        public async Task<RequestResponse> DeleteStrategy(int id)
         {
             try
             {
                 _db.Remove(_db.Strategies
-                    .Where(w => w.StrategyID == strategyId)
+                    .Where(w => w.Id == id)
                     .FirstOrDefault());
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(strategyId, 200, "Deleted");
+                return new RequestResponse(id, 200, "Deleted");
             }
             catch (Exception ex)
             {
-                return new RequestResponse(strategyId, 500, "Problem Deleting", new ResponseError(ex));
+                return new RequestResponse(id, 500, "Problem Deleting", new ResponseError(ex));
             }
         }
 
-        public async Task<RequestResponse> DeleteStrategies(List<int> strategyIds)
+        public async Task<RequestResponse> DeleteStrategies(List<int> ids)
         {
             try
             {
                 _db.RemoveRange(_db.Strategies
-                    .Where(w => strategyIds.Contains(w.StrategyID)));
+                    .Where(w => ids.Contains(w.Id)));
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(strategyIds, 200, "Deleted");
+                return new RequestResponse(ids, 200, "Deleted");
             }
             catch(Exception ex)
             {
-                return new RequestResponse(strategyIds, 500, "Problem Deleting", new ResponseError(ex));
+                return new RequestResponse(ids, 500, "Problem Deleting", new ResponseError(ex));
             }
         }
 
         public async Task<RequestResponse> SaveStrategy(Strategy strategy)
         {
-            if (strategy.StrategyID == 0)
+            if (strategy.Id == 0)
                 return await CreateNewStrategy(strategy);
             else
                 return await UpdateExistingStrategy(strategy);
@@ -113,7 +113,7 @@ namespace egibi_api.Services
         private async Task<RequestResponse> UpdateExistingStrategy(Strategy strategy)
         {
             Strategy existingStrategy = await _db.Strategies
-                .Where(w => w.StrategyID == strategy.StrategyID)
+                .Where(w => w.Id == strategy.Id)
                 .FirstOrDefaultAsync();
 
             existingStrategy.Name = strategy.Name;
