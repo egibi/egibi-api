@@ -11,7 +11,7 @@ namespace egibi_api.Controllers
     public class BacktesterController : ControllerBase
     {
         private readonly BacktesterService _backtesterService;
-
+       
         public BacktesterController(BacktesterService backtesterService)
         {
             _backtesterService = backtesterService;

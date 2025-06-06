@@ -1,9 +1,12 @@
 ﻿#nullable disable
+using CsvHelper;
+using CsvHelper.Configuration;
 using egibi_api.Data.Entities;
 using egibi_api.Services;
-using EgibiCoreLibrary;
 using EgibiCoreLibrary.Models;
+using EgibiCoreLibrary.Models.QuestDbModels;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace egibi_api.Controllers
 {
@@ -60,14 +63,71 @@ namespace egibi_api.Controllers
 
         [HttpPost("drop-file")]
         [DisableRequestSizeLimit] // TODO: If moved to hosting provider, setup tool or something to upload directly
-        public async Task DropFile(IFormFile file)
+        public async Task<RequestResponse> DropFile(IFormFile file)
         {
             if (file == null || file.Length == 0)
             {
                 // return bad request
             }
 
-            await _dataManagerService.SaveFile(file);
+            using var stream = file.OpenReadStream();
+            using var reader = new StreamReader(stream);
+            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                // Optional settings
+                HasHeaderRecord = true,
+                TrimOptions = TrimOptions.Trim,
+                IgnoreBlankLines = true
+            });
+
+            await csv.ReadAsync();
+            csv.ReadHeader();
+
+            var test = csv.HeaderRecord;
+
+            return new RequestResponse(test, 200, "OK");
+        }
+
+
+        [HttpPost("create-questdb-table")]
+        public async Task<RequestResponse> CreateQuestDbTable()
+        {
+            List<Ohlcv> data = new List<Ohlcv>()
+            {
+               new Ohlcv
+               {
+                   TimeStamp = DateTime.Now.ToUniversalTime(),
+                   DateTime = DateTime.Now.ToUniversalTime(),
+                   Open = 0.123M,
+                   High = 1.0123M,
+                   Close = 1.02M,
+                   Volume = 123409.40982M,
+               },
+               new Ohlcv
+               {
+                   TimeStamp = DateTime.Now.ToUniversalTime(),
+                   DateTime = DateTime.Now.ToUniversalTime(),
+                   Open = 0.124M,
+                   High = 1.0125M,
+                   Close = 1.03M,
+                   Volume = 123409.44482M,
+               },
+               new Ohlcv
+               {
+                   TimeStamp = DateTime.Now.ToUniversalTime(),
+                   DateTime = DateTime.Now.ToUniversalTime(),
+                   Open = 0.125M,
+                   High = 1.0125M,
+                   Close = 1.04M,
+                   Volume = 123409.4032M,
+               },
+            };
+
+            await _dataManagerService.CreateQuestDbTable(data);
+
+            var response = new RequestResponse("testValue", 202, "this is a test response");
+
+            return response;
         }
     }
 }

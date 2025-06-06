@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using EgibiQuestDB;
 using EgibiCoreLibrary.Models;
 using egibi_api.Data.Entities;
-using CryptoExchange.Net.Interfaces;
+using EgibiCoreLibrary.Models.QuestDbModels;
 
 namespace egibi_api.Services
 {
@@ -35,7 +35,6 @@ namespace egibi_api.Services
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }
-
         public async Task<RequestResponse> GetDataProvider(int id)
         {
             try
@@ -50,7 +49,6 @@ namespace egibi_api.Services
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }
-
         public async Task<RequestResponse> DeleteDataProvider(int id)
         {
             try
@@ -67,7 +65,6 @@ namespace egibi_api.Services
                 return new RequestResponse(id, 500, "Problem Deleting", new ResponseError(ex));
             }
         }
-
         public async Task<RequestResponse> DeleteDataProviders(List<int> ids)
         {
             try
@@ -83,7 +80,6 @@ namespace egibi_api.Services
                 return new RequestResponse(ids, 500, "Problem Deleting", new ResponseError(ex));
             }
         }
-
         public async Task<RequestResponse> SaveDataProvider(DataProvider dataProvider)
         {
             if (dataProvider.Id == 0)
@@ -91,7 +87,6 @@ namespace egibi_api.Services
             else
                 return await UpdateExistingDataProvider(dataProvider);
         }
-
         public async Task<RequestResponse> GetDataProviderTypes()
         {
             try
@@ -137,14 +132,29 @@ namespace egibi_api.Services
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }
-
         public async Task<RequestResponse> SaveFile(IFormFile file)
         {
+            
             var ingester = new Ingester("connectionString");
             ingester.LoadCsv(file);
 
             return new RequestResponse(null, null, "OK");
         }
+
+        public async Task<RequestResponse> CreateQuestDbTable(List<Ohlcv> data)
+        {
+
+
+            var sql = $"CREATE TABLE IF NOT EXISTS {tableName}" +
+                $"id LONG,",
+
+                
+
+
+
+            return null;
+        }
+
 
 
         private async Task<RequestResponse> CreateNewDataProvider(DataProvider dataProvider)
@@ -188,7 +198,6 @@ namespace egibi_api.Services
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }
-
         private async Task<RequestResponse> UpdateExistingDataProvider(DataProvider dataProvider)
         {
             DataProvider existingDataProvider = await _db.DataProviders
