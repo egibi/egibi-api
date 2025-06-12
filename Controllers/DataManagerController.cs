@@ -6,6 +6,7 @@ using egibi_api.Services;
 using EgibiCoreLibrary.Models;
 using EgibiCoreLibrary.Models.QuestDbModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using System.Globalization;
 
 namespace egibi_api.Controllers
@@ -15,10 +16,12 @@ namespace egibi_api.Controllers
     public class DataManagerController : ControllerBase
     {
         private readonly DataManagerService _dataManagerService;
+        private readonly QuestDbService _questDbService;
 
-        public DataManagerController(DataManagerService dataManagerService)
+        public DataManagerController(DataManagerService dataManagerService, QuestDbService questDbService)
         {
             _dataManagerService = dataManagerService;
+            _questDbService = questDbService;
         }
 
         [HttpGet("get-data-providers")]
@@ -88,46 +91,26 @@ namespace egibi_api.Controllers
             return new RequestResponse(test, 200, "OK");
         }
 
+        //============================================================================================================================
+        // QUESTDB OPERATIONS
+        //============================================================================================================================
+
+        [HttpGet("get-questdb-tables")]
+        public async Task<RequestResponse> GetQuestDbTables()
+        {
+            return await _questDbService.GetTables();
+        }
 
         [HttpPost("create-questdb-table")]
-        public async Task<RequestResponse> CreateQuestDbTable()
+        public async Task<RequestResponse> CreateTable(QuestDbTable table)
         {
-            List<Ohlcv> data = new List<Ohlcv>()
-            {
-               new Ohlcv
-               {
-                   TimeStamp = DateTime.Now.ToUniversalTime(),
-                   DateTime = DateTime.Now.ToUniversalTime(),
-                   Open = 0.123M,
-                   High = 1.0123M,
-                   Close = 1.02M,
-                   Volume = 123409.40982M,
-               },
-               new Ohlcv
-               {
-                   TimeStamp = DateTime.Now.ToUniversalTime(),
-                   DateTime = DateTime.Now.ToUniversalTime(),
-                   Open = 0.124M,
-                   High = 1.0125M,
-                   Close = 1.03M,
-                   Volume = 123409.44482M,
-               },
-               new Ohlcv
-               {
-                   TimeStamp = DateTime.Now.ToUniversalTime(),
-                   DateTime = DateTime.Now.ToUniversalTime(),
-                   Open = 0.125M,
-                   High = 1.0125M,
-                   Close = 1.04M,
-                   Volume = 123409.4032M,
-               },
-            };
+            return await _questDbService.CreateTable(table);
+        }
 
-            await _dataManagerService.CreateQuestDbTable(data);
-
-            var response = new RequestResponse("testValue", 202, "this is a test response");
-
-            return response;
+        [HttpPost("drop-questdb-table")]
+        public async Task<RequestResponse> DropTable(string tableName)
+        {
+            return await _questDbService.DropTable(tableName);
         }
     }
 }

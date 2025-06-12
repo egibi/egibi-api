@@ -145,8 +145,8 @@ namespace egibi_api.Services
         {
 
 
-            var sql = $"CREATE TABLE IF NOT EXISTS {tableName}" +
-                $"id LONG,",
+            //var sql = $"CREATE TABLE IF NOT EXISTS {tableName}" +
+            //    $"id LONG,",
 
                 
 

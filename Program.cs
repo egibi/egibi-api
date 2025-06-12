@@ -4,6 +4,7 @@ using egibi_api.Services;
 using EgibiBinanceUsSdk;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
+using EgibiQuestDbSdk;
 
 namespace egibi_api
 {
@@ -14,16 +15,18 @@ namespace egibi_api
             var CorsPolicyDev = "_corsPolicyDev";
             var builder = WebApplication.CreateBuilder(args);
             string env = builder.Environment.EnvironmentName;
-            string dbConnectionString = "";
-            string questDbConnectionString = "";
-            
+            string dbConnectionString = string.Empty;
+            string questDbConnectionString = string.Empty;
+
             builder.Services.Configure<ConfigOptions>(builder.Configuration.GetSection("ConfigOptions"));
 
             Console.WriteLine($"env={builder.Environment.EnvironmentName}");
 
             if (builder.Environment.IsProduction())
             {
+                // TODO: Setup production connection strings when ready
                 dbConnectionString = builder.Configuration.GetConnectionString("prod_connectionstring");
+                questDbConnectionString = builder.Configuration.GetConnectionString("EgibiQuestDb");
 
                 builder.Services.AddDbContextPool<EgibiDbContext>(options =>
                     options.UseNpgsql(builder.Configuration.GetConnectionString(dbConnectionString)));
@@ -32,6 +35,7 @@ namespace egibi_api
             if (builder.Environment.IsDevelopment())
             {
                 dbConnectionString = builder.Configuration.GetConnectionString("EgibiDb");
+                questDbConnectionString = builder.Configuration.GetConnectionString("EgibiQuestDb");
 
                 Console.WriteLine($"ConnectionString={dbConnectionString}");
 
@@ -58,6 +62,9 @@ namespace egibi_api
             builder.Services.AddScoped<DataManagerService>();
             builder.Services.AddScoped<StrategiesService>();
             builder.Services.AddScoped<BacktesterService>();
+            builder.Services.AddScoped(service => new QuestDbService(questDbConnectionString));
+
+
 
             // Allow large form limits. Will need to handle differently in future if hosted non-locally
             builder.Services.Configure<FormOptions>(options =>
@@ -65,7 +72,7 @@ namespace egibi_api
                 options.MultipartBodyLengthLimit = long.MaxValue;
             });
 
-            
+
             builder.Services.AddControllers();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
