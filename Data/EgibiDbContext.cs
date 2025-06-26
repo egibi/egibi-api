@@ -32,6 +32,9 @@ namespace egibi_api.Data
         public DbSet<DataFormatType> DataFormatTypes { get; set; }
         public DbSet<DataFrequencyType> DataFrequencyTypes { get; set; }
         public DbSet<Exchange> Exchanges { get; set; }
+        public DbSet<ExchangeType> ExchangeTypes { get; set; }
+        public DbSet<Market> Markets { get; set; }
+        public DbSet<MarketType> MarketTypes { get; set; }
         public DbSet<ExchangeFeeStructure> ExchangeFeeStructures { get; set; }
         public DbSet<ExchangeFeeStructureTier> ExchangeFeeStructureTiers { get; set; }
         public DbSet<ExchangeAccount> ExchangeAccounts { get; set; }

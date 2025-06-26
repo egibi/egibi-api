@@ -49,6 +49,7 @@ namespace egibi_api.Services
                 var connection = await _db.Connections
                     .Include("ConnectionType")
                     .FirstOrDefaultAsync(x => x.Id == id);
+
                 return new RequestResponse(connection, 200, "OK");
             }
             catch (Exception ex)
@@ -64,7 +65,7 @@ namespace egibi_api.Services
                 var connectionTypes = await _db.ConnectionTypes.ToListAsync();
                 return new RequestResponse(connectionTypes, 200, "OK");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
@@ -72,10 +73,18 @@ namespace egibi_api.Services
 
         public async Task<RequestResponse> SaveConnection(Connection connection)
         {
-            if (connection.Id == 0)
-                return await CreateNewConnection(connection);
-            else
-                return await UpdateExistingConnection(connection);
+            try
+            {
+                if (connection.Id == 0)
+                    return await CreateNewConnection(connection);
+                else
+                    return await UpdateExistingConnection(connection);
+            }
+            catch (Exception ex)
+            {
+                return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
+            }
+
         }
 
         public async Task<RequestResponse> DeleteConnection(int id)
@@ -146,21 +155,21 @@ namespace egibi_api.Services
 
         private async Task<RequestResponse> UpdateExistingConnection(Connection connection)
         {
-            Connection existingConnection = await _db.Connections
-                .Where(w => w.Id == connection.Id)
-                .FirstOrDefaultAsync();
-
-            existingConnection.Name = connection.Name;
-            existingConnection.Description = connection.Description;
-            existingConnection.Id = connection.Id;
-            existingConnection.BaseUrl = connection.BaseUrl;
-            existingConnection.ApiKey = connection.ApiKey;
-            //existingConnection.ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword);
-            existingConnection.ApiSecretKey = connection.ApiSecretKey;
-            existingConnection.IsDataSource = connection.IsDataSource;
-
             try
             {
+                Connection existingConnection = await _db.Connections
+                    .Where(w => w.Id == connection.Id)
+                    .FirstOrDefaultAsync();
+
+                existingConnection.Name = connection.Name;
+                existingConnection.Description = connection.Description;
+                existingConnection.Id = connection.Id;
+                existingConnection.BaseUrl = connection.BaseUrl;
+                existingConnection.ApiKey = connection.ApiKey;
+                //existingConnection.ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword);
+                existingConnection.ApiSecretKey = connection.ApiSecretKey;
+                existingConnection.IsDataSource = connection.IsDataSource;
+
                 _db.Update(existingConnection);
                 await _db.SaveChangesAsync();
 
