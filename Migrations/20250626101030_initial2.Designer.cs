@@ -12,8 +12,8 @@ using egibi_api.Data;
 namespace egibi_api.Migrations
 {
     [DbContext(typeof(EgibiDbContext))]
-    [Migration("20250601063608_initial-migration")]
-    partial class initialmigration
+    [Migration("20250626101030_initial2")]
+    partial class initial2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -429,6 +429,195 @@ namespace egibi_api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("egibi_api.Data.Entities.Exchange", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ExchangeFeeStructureId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ExchangeFeeStructureTierId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExchangeFeeStructureTierId");
+
+                    b.ToTable("Exchange", (string)null);
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.ExchangeAccount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AssetBalance")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("CurrentSpotVolume_30Day")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ExchangeFeeStructureTierId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ExchangeId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Password")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExchangeFeeStructureTierId");
+
+                    b.HasIndex("ExchangeId");
+
+                    b.ToTable("ExchangeAccount", (string)null);
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.ExchangeFeeStructure", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("IsRolling")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("RollingIntervalDays")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("RollingReset")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ExchangeFeeStructure", (string)null);
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.ExchangeFeeStructureTier", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("AssetBalance")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("ExchangeFeeStructureId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("MakerFeeFuture")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("MakerFeeSpot")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<decimal?>("SpotValue")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("TakerFeeFuture")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("TakerFeeSpot")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("TierLevel")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExchangeFeeStructureId");
+
+                    b.ToTable("ExchangeFeeStructureTier", (string)null);
+                });
+
             modelBuilder.Entity("egibi_api.Data.Entities.Strategy", b =>
                 {
                     b.Property<int>("Id")
@@ -512,6 +701,44 @@ namespace egibi_api.Migrations
                     b.Navigation("DataFrequencyType");
 
                     b.Navigation("DataProviderType");
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.Exchange", b =>
+                {
+                    b.HasOne("egibi_api.Data.Entities.ExchangeFeeStructureTier", "ExchangeFeeStructureTier")
+                        .WithMany()
+                        .HasForeignKey("ExchangeFeeStructureTierId");
+
+                    b.Navigation("ExchangeFeeStructureTier");
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.ExchangeAccount", b =>
+                {
+                    b.HasOne("egibi_api.Data.Entities.ExchangeFeeStructureTier", "ExchangeFeeStructureTier")
+                        .WithMany()
+                        .HasForeignKey("ExchangeFeeStructureTierId");
+
+                    b.HasOne("egibi_api.Data.Entities.Exchange", "Exchange")
+                        .WithMany()
+                        .HasForeignKey("ExchangeId");
+
+                    b.Navigation("Exchange");
+
+                    b.Navigation("ExchangeFeeStructureTier");
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.ExchangeFeeStructureTier", b =>
+                {
+                    b.HasOne("egibi_api.Data.Entities.ExchangeFeeStructure", "ExchangeFeeStructure")
+                        .WithMany("ExchangeFeeStructureTiers")
+                        .HasForeignKey("ExchangeFeeStructureId");
+
+                    b.Navigation("ExchangeFeeStructure");
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.ExchangeFeeStructure", b =>
+                {
+                    b.Navigation("ExchangeFeeStructureTiers");
                 });
 #pragma warning restore 612, 618
         }

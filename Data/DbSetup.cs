@@ -151,5 +151,30 @@ namespace egibi_api.Data
             return dataFormatTypes;
         }
 
+        public static List<Exchange> GetExchanges()
+        {
+            List<Exchange> exchanges = new List<Exchange>
+            {
+                new Exchange
+                {
+                    Id = 1,
+                    Name = "Coinbase",
+                    Description = ""
+                }
+            };
+
+            return null;
+        }
+
+        public static List<ExchangeFeeStructure> GetExchangeFeeStructures()
+        {
+            return null;
+        }
+
+        public static List<ExchangeFeeStructureTier> GetExchangeFeeStructureTiers()
+        {
+            return null;
+        }
+
     }
 }

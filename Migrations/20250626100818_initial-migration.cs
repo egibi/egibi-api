@@ -87,6 +87,27 @@ namespace egibi_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ExchangeFeeStructure",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    IsRolling = table.Column<bool>(type: "boolean", nullable: true),
+                    RollingIntervalDays = table.Column<int>(type: "integer", nullable: true),
+                    RollingReset = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Notes = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastModifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExchangeFeeStructure", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Strategy",
                 columns: table => new
                 {
@@ -173,6 +194,37 @@ namespace egibi_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ExchangeFeeStructureTier",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TierLevel = table.Column<int>(type: "integer", nullable: false),
+                    MakerFeeSpot = table.Column<decimal>(type: "numeric", nullable: false),
+                    TakerFeeSpot = table.Column<decimal>(type: "numeric", nullable: false),
+                    MakerFeeFuture = table.Column<decimal>(type: "numeric", nullable: false),
+                    TakerFeeFuture = table.Column<decimal>(type: "numeric", nullable: false),
+                    SpotValue = table.Column<decimal>(type: "numeric", nullable: true),
+                    AssetBalance = table.Column<decimal>(type: "numeric", nullable: true),
+                    ExchangeFeeStructureId = table.Column<int>(type: "integer", nullable: true),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Notes = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastModifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExchangeFeeStructureTier", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ExchangeFeeStructureTier_ExchangeFeeStructure_ExchangeFeeSt~",
+                        column: x => x.ExchangeFeeStructureId,
+                        principalTable: "ExchangeFeeStructure",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Backtest",
                 columns: table => new
                 {
@@ -207,6 +259,65 @@ namespace egibi_api.Migrations
                         name: "FK_Backtest_Strategy_StrategyId",
                         column: x => x.StrategyId,
                         principalTable: "Strategy",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Exchange",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ExchangeFeeStructureId = table.Column<int>(type: "integer", nullable: true),
+                    ExchangeFeeStructureTierId = table.Column<int>(type: "integer", nullable: true),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Notes = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastModifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Exchange", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Exchange_ExchangeFeeStructureTier_ExchangeFeeStructureTierId",
+                        column: x => x.ExchangeFeeStructureTierId,
+                        principalTable: "ExchangeFeeStructureTier",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ExchangeAccount",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Username = table.Column<string>(type: "text", nullable: true),
+                    Password = table.Column<string>(type: "text", nullable: true),
+                    CurrentSpotVolume_30Day = table.Column<decimal>(type: "numeric", nullable: false),
+                    AssetBalance = table.Column<decimal>(type: "numeric", nullable: false),
+                    ExchangeId = table.Column<int>(type: "integer", nullable: true),
+                    ExchangeFeeStructureTierId = table.Column<int>(type: "integer", nullable: true),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Notes = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastModifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ExchangeAccount", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ExchangeAccount_ExchangeFeeStructureTier_ExchangeFeeStructu~",
+                        column: x => x.ExchangeFeeStructureTierId,
+                        principalTable: "ExchangeFeeStructureTier",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ExchangeAccount_Exchange_ExchangeId",
+                        column: x => x.ExchangeId,
+                        principalTable: "Exchange",
                         principalColumn: "Id");
                 });
 
@@ -290,6 +401,26 @@ namespace egibi_api.Migrations
                 name: "IX_DataProvider_DataProviderTypeId",
                 table: "DataProvider",
                 column: "DataProviderTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Exchange_ExchangeFeeStructureTierId",
+                table: "Exchange",
+                column: "ExchangeFeeStructureTierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExchangeAccount_ExchangeFeeStructureTierId",
+                table: "ExchangeAccount",
+                column: "ExchangeFeeStructureTierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExchangeAccount_ExchangeId",
+                table: "ExchangeAccount",
+                column: "ExchangeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ExchangeFeeStructureTier_ExchangeFeeStructureId",
+                table: "ExchangeFeeStructureTier",
+                column: "ExchangeFeeStructureId");
         }
 
         /// <inheritdoc />
@@ -299,6 +430,9 @@ namespace egibi_api.Migrations
                 name: "Backtest");
 
             migrationBuilder.DropTable(
+                name: "ExchangeAccount");
+
+            migrationBuilder.DropTable(
                 name: "Connection");
 
             migrationBuilder.DropTable(
@@ -306,6 +440,9 @@ namespace egibi_api.Migrations
 
             migrationBuilder.DropTable(
                 name: "Strategy");
+
+            migrationBuilder.DropTable(
+                name: "Exchange");
 
             migrationBuilder.DropTable(
                 name: "ConnectionType");
@@ -318,6 +455,12 @@ namespace egibi_api.Migrations
 
             migrationBuilder.DropTable(
                 name: "DataProviderType");
+
+            migrationBuilder.DropTable(
+                name: "ExchangeFeeStructureTier");
+
+            migrationBuilder.DropTable(
+                name: "ExchangeFeeStructure");
         }
     }
 }
