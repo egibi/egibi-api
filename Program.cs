@@ -64,6 +64,7 @@ namespace egibi_api
             builder.Services.AddScoped<BacktesterService>();
             builder.Services.AddScoped<ExchangesService>();
             builder.Services.AddScoped<MarketsService>();
+            builder.Services.AddScoped<ConfigurationService>();
             builder.Services.AddScoped(service => new QuestDbService(questDbConnectionString));
 
 
