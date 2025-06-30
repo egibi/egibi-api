@@ -1,4 +1,5 @@
 ﻿#nullable disable
+using egibi_api.Data.Entities;
 using egibi_api.Services;
 using EgibiCoreLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,12 @@ namespace egibi_api.Controllers
         public async Task<RequestResponse> GetEntityTypeRecords(string tableName)
         {
             return await _configurationService.GetEntityTypeRecords(tableName);
+        }
+
+        [HttpPost("save-entity-type")]
+        public async Task<RequestResponse> SaveEntityType(EntityType entityType)
+        {
+            return await _configurationService.SaveEntityType(entityType);
         }
     }
 }
