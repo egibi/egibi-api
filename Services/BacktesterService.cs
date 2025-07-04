@@ -152,7 +152,6 @@ namespace egibi_api.Services
 
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
-
         }
     }
 }

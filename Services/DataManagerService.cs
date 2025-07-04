@@ -134,28 +134,19 @@ namespace egibi_api.Services
         }
         public async Task<RequestResponse> SaveFile(IFormFile file)
         {
-            
+
             var ingester = new Ingester("connectionString");
             ingester.LoadCsv(file);
 
             return new RequestResponse(null, null, "OK");
         }
-
         public async Task<RequestResponse> CreateQuestDbTable(List<Ohlcv> data)
         {
-
-
             //var sql = $"CREATE TABLE IF NOT EXISTS {tableName}" +
             //    $"id LONG,",
 
-                
-
-
-
             return null;
         }
-
-
 
         private async Task<RequestResponse> CreateNewDataProvider(DataProvider dataProvider)
         {
@@ -200,23 +191,23 @@ namespace egibi_api.Services
         }
         private async Task<RequestResponse> UpdateExistingDataProvider(DataProvider dataProvider)
         {
-            DataProvider existingDataProvider = await _db.DataProviders
-                .Where(w => w.Id == dataProvider.Id)
-                .FirstOrDefaultAsync();
-
-            existingDataProvider.Name = dataProvider.Name;
-            existingDataProvider.Description = dataProvider.Description;
-            existingDataProvider.Notes = dataProvider.Notes;
-            existingDataProvider.DataProviderTypeId = dataProvider.DataProviderTypeId;
-            existingDataProvider.DataFormatTypeId = dataProvider.DataFormatTypeId;
-            existingDataProvider.DataFrequencyTypeId = dataProvider.DataFrequencyTypeId;
-            existingDataProvider.IsActive = dataProvider.IsActive;
-            existingDataProvider.Start = dataProvider.Start?.ToUniversalTime();
-            existingDataProvider.End = dataProvider.End?.ToUniversalTime();
-            existingDataProvider.LastModifiedAt = DateTime.Now.ToUniversalTime();
-
             try
             {
+                DataProvider existingDataProvider = await _db.DataProviders
+                    .Where(w => w.Id == dataProvider.Id)
+                    .FirstOrDefaultAsync();
+
+                existingDataProvider.Name = dataProvider.Name;
+                existingDataProvider.Description = dataProvider.Description;
+                existingDataProvider.Notes = dataProvider.Notes;
+                existingDataProvider.DataProviderTypeId = dataProvider.DataProviderTypeId;
+                existingDataProvider.DataFormatTypeId = dataProvider.DataFormatTypeId;
+                existingDataProvider.DataFrequencyTypeId = dataProvider.DataFrequencyTypeId;
+                existingDataProvider.IsActive = dataProvider.IsActive;
+                existingDataProvider.Start = dataProvider.Start?.ToUniversalTime();
+                existingDataProvider.End = dataProvider.End?.ToUniversalTime();
+                existingDataProvider.LastModifiedAt = DateTime.Now.ToUniversalTime();
+
                 _db.Update(existingDataProvider);
                 await _db.SaveChangesAsync();
 

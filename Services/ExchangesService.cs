@@ -19,7 +19,7 @@ namespace egibi_api.Services
             try
             {
                 List<Exchange> exchanges = await _db.Exchanges
-                    .Include("ExchangeType")
+                    //.Include("ExchangeType")
                     .ToListAsync();
 
                 return new RequestResponse(exchanges, 200, "OK");
@@ -35,7 +35,7 @@ namespace egibi_api.Services
             try
             {
                 var exchange = await _db.Exchanges
-                    .Include("ExchangeType")
+                    //.Include("ExchangeType")
                     .FirstOrDefaultAsync(x => x.Id == id);
 
                 return new RequestResponse(exchange, 200, "OK");
@@ -116,7 +116,7 @@ namespace egibi_api.Services
                 Description = exchange.Description,
                 Notes = exchange.Notes,
                 IsActive = true,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.Now.ToUniversalTime()
             };
 
             try

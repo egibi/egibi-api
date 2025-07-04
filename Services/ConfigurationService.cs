@@ -125,7 +125,7 @@ namespace egibi_api.Services
                 using (var transaction = await _db.Database.BeginTransactionAsync())
                 {
                     var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
-                    await conn.OpenAsync();
+                    //await conn.OpenAsync();
 
                     string tableName = entityType.TableName; // make sure you validate this!
                     string sql = $"UPDATE \"{tableName}\" SET Name = @p1, Description = @p2, IsActive = @p3, LastModifiedAt = @p4, WHERE id = @id";

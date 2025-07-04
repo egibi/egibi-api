@@ -2,9 +2,8 @@
 using egibi_api.Data;
 using egibi_api.Services;
 using EgibiBinanceUsSdk;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
-using EgibiQuestDbSdk;
+using Microsoft.EntityFrameworkCore;
 
 namespace egibi_api
 {
@@ -65,6 +64,7 @@ namespace egibi_api
             builder.Services.AddScoped<ExchangesService>();
             builder.Services.AddScoped<MarketsService>();
             builder.Services.AddScoped<ConfigurationService>();
+            builder.Services.AddScoped<ExchangeAccountsService>();
             builder.Services.AddScoped(service => new QuestDbService(questDbConnectionString));
 
 
