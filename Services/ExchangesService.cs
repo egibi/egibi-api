@@ -144,7 +144,7 @@ namespace egibi_api.Services
                 existingExchange.Description = exchange.Description;
                 existingExchange.Notes = exchange.Notes;
                 existingExchange.IsActive = exchange.IsActive;
-                existingExchange.LastModifiedAt = DateTime.Now;
+                existingExchange.LastModifiedAt = DateTime.Now.ToUniversalTime();
 
                 _db.Update(existingExchange);
                 await _db.SaveChangesAsync();

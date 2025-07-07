@@ -23,6 +23,8 @@ namespace egibi_api.Data
 
         public EgibiDbContext(DbContextOptions<EgibiDbContext> options) : base(options) { }
         
+        public DbSet<Account> Accounts { get; set; }
+        public DbSet<AccountType> AccountTypes { get; set; }
         public DbSet<Connection> Connections { get; set; }
         public DbSet<ConnectionType> ConnectionTypes { get; set; }
         public DbSet<Strategy> Strategies { get; set; }

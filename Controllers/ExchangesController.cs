@@ -28,6 +28,12 @@ namespace egibi_api.Controllers
             return await _exchangesService.GetExchange(id);
         }
 
+        [HttpGet("get-exchange-types")]
+        public async Task<RequestResponse> GetExchangeTypes()
+        {
+            return await _exchangesService.GetExchangeTypes();
+        }
+
         [HttpPost("save-exchange")]
         public async Task<RequestResponse> SaveExchange(Exchange exchange)
         {
