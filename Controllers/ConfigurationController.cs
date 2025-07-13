@@ -30,7 +30,7 @@ namespace egibi_api.Controllers
         }
 
         [HttpPost("save-entity-type")]
-        public async Task<RequestResponse> SaveEntityType(EntityType entityType)
+        public async Task<RequestResponse> SaveEntityType([FromBody] EntityType entityType)
         {
             return await _configurationService.SaveEntityType(entityType);
         }
