@@ -8,11 +8,11 @@ namespace egibi_api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ConfigurationController : ControllerBase
+    public class ServiceConfigurationsController : ControllerBase
     {
-        private readonly ConfigurationService _configurationService;
+        private readonly ServiceConfigurationsService _configurationService;
 
-        public ConfigurationController(ConfigurationService configurationService)
+        public ServiceConfigurationsController(ServiceConfigurationsService configurationService)
         {
             _configurationService = configurationService;
         }

@@ -8,11 +8,11 @@ using Npgsql;
 
 namespace egibi_api.Services
 {
-    public class ConfigurationService
+    public class ServiceConfigurationsService
     {
         private readonly EgibiDbContext _db;
 
-        public ConfigurationService(EgibiDbContext db)
+        public ServiceConfigurationsService(EgibiDbContext db)
         {
             _db = db;
         }
