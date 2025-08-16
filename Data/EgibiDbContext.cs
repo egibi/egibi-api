@@ -7,10 +7,36 @@ namespace egibi_api.Data
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            foreach(var entityType in modelBuilder.Model.GetEntityTypes())
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 modelBuilder.Entity(entityType.ClrType).ToTable(entityType.ClrType.Name);
             }
+
+            modelBuilder.Entity<Account>()
+                .HasOne(ad => ad.AccountDetails)
+                .WithOne(a => a.Account)
+                .HasForeignKey<AccountDetails>(a => a.AccountId);
+
+            modelBuilder.Entity<Account>()
+                .HasOne(s => s.AccountSecurityDetails)
+                .WithOne(a => a.Account)
+                .HasForeignKey<AccountSecurityDetails>(a => a.AccountId);
+
+            modelBuilder.Entity<Account>()
+                .HasOne(api => api.AccountApiDetails)
+                .WithOne(a => a.Account)
+                .HasForeignKey<AccountApiDetails>(a => a.AccountId);
+
+            modelBuilder.Entity<Account>()
+                .HasOne(fees => fees.AccountFeeStructureDetails)
+                .WithOne(a => a.Account)
+                .HasForeignKey<AccountFeeStructureDetails>(a => a.AccountId);
+
+            modelBuilder.Entity<Account>()
+                .HasOne(status => status.AccountStatusDetails)
+                .WithOne(a => a.Account)
+                .HasForeignKey<AccountStatusDetails>(a => a.AccountId);
+
 
             base.OnModelCreating(modelBuilder);
 
@@ -22,9 +48,10 @@ namespace egibi_api.Data
         }
 
         public EgibiDbContext(DbContextOptions<EgibiDbContext> options) : base(options) { }
-        
+
         public DbSet<Account> Accounts { get; set; }
         public DbSet<AccountType> AccountTypes { get; set; }
+        public DbSet<AccountDetails> AccountDetails { get; set; }
         public DbSet<Connection> Connections { get; set; }
         public DbSet<ConnectionType> ConnectionTypes { get; set; }
         public DbSet<Strategy> Strategies { get; set; }

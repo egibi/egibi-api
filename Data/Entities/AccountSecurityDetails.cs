@@ -1,7 +1,7 @@
 ﻿#nullable disable
 namespace egibi_api.Data.Entities
 {
-    public class AccountSecurity : EntityBase
+    public class AccountSecurityDetails : EntityBase
     {
         public string Username { get; set; }
         public string Password { get; set; }

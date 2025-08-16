@@ -16,6 +16,7 @@ namespace egibi_api.Controllers
             _accountsService = accountsService;
         }
 
+        // CRUD ACTIONS FOR ENTIRE ACCOUNT ENTITY
         [HttpGet("get-accounts")]
         public async Task<RequestResponse> GetAccounts()
         {
@@ -51,5 +52,13 @@ namespace egibi_api.Controllers
         {
             return await _accountsService.DeleteAccount(id);
         }
+
+        // DETAILS
+
+        // API
+
+        // FEES
+
+        // STATUS
     }
 }

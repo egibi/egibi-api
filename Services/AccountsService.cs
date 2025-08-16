@@ -116,6 +116,8 @@ namespace egibi_api.Services
             Account newAccount = new Account
             {
                 Name = account.Name,
+                //AccountTypeId = account.AccountType.Id,
+                Url = account.Url,
                 Description = account.Description,
                 Notes = account.Notes,
                 IsActive = true,
@@ -144,6 +146,8 @@ namespace egibi_api.Services
                     .FirstOrDefaultAsync();
 
                 existingAccount.Name = account.Name;
+                existingAccount.Url = account.Url;
+               // existingAccount.AccountTypeId = account.AccountType.Id;
                 existingAccount.Description = account.Description;
                 existingAccount.Notes = account.Notes;
                 existingAccount.IsActive = account.IsActive;
@@ -159,5 +163,42 @@ namespace egibi_api.Services
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }
+
+        // DETAILS
+        public async Task<RequestResponse> GetAccountDetails(int id)
+        {
+            try
+            {
+                var accountDetails = await _db.AccountDetails
+                    .Include("AccountType")
+                    .Where(w => w.AccountId == id)
+                    .FirstOrDefaultAsync();
+
+                return new RequestResponse(accountDetails, 200, "OK");
+            }
+            catch (Exception ex)
+            {
+                return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
+            }
+        }
+
+        //public async Task<RequestResponse> SaveAccountDetails(AccountDetails accountDetails)
+        //{
+        //    try
+        //    {
+        //        var account = await _db.Accounts
+        //            .Where(w => w.Id == accountDetails.AccountId)
+        //            .Select(s => s.AccountDetails)
+        //            .FirstOrDefaultAsync();
+
+        //        var existingAccountDetails = account.AccountDetails;
+
+        //    }
+        //    catch(Exception ex)
+        //    {
+        //        return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
+        //    }
+
+        //}
     }
 }
