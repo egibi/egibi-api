@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using egibi_api.Data;
@@ -11,9 +12,11 @@ using egibi_api.Data;
 namespace egibi_api.Migrations
 {
     [DbContext(typeof(EgibiDbContext))]
-    partial class EgibiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250817022731_remove-url-property-from-account-entity")]
+    partial class removeurlpropertyfromaccountentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,10 +33,19 @@ namespace egibi_api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AccountApiDetailsId")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("AccountDetailsId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("AccountTypeId")
+                    b.Property<int?>("AccountFeeStructureDetailsId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("AccountSecurityDetailsId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("AccountStatusDetailsId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
@@ -56,9 +68,44 @@ namespace egibi_api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountTypeId");
-
                     b.ToTable("Account", (string)null);
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.AccountApiDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique();
+
+                    b.ToTable("AccountApiDetails", (string)null);
                 });
 
             modelBuilder.Entity("egibi_api.Data.Entities.AccountDetails", b =>
@@ -70,6 +117,9 @@ namespace egibi_api.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("AccountId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("AccountTypeId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
@@ -101,7 +151,129 @@ namespace egibi_api.Migrations
                     b.HasIndex("AccountId")
                         .IsUnique();
 
+                    b.HasIndex("AccountTypeId");
+
                     b.ToTable("AccountDetails", (string)null);
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.AccountFeeStructureDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique();
+
+                    b.ToTable("AccountFeeStructureDetails", (string)null);
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.AccountSecurityDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Password")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Username")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique();
+
+                    b.ToTable("AccountSecurityDetails", (string)null);
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.AccountStatusDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique();
+
+                    b.ToTable("AccountStatusDetails", (string)null);
                 });
 
             modelBuilder.Entity("egibi_api.Data.Entities.AccountType", b =>
@@ -129,6 +301,9 @@ namespace egibi_api.Migrations
 
                     b.Property<string>("Notes")
                         .HasColumnType("text");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -855,13 +1030,13 @@ namespace egibi_api.Migrations
                     b.ToTable("Strategy", (string)null);
                 });
 
-            modelBuilder.Entity("egibi_api.Data.Entities.Account", b =>
+            modelBuilder.Entity("egibi_api.Data.Entities.AccountApiDetails", b =>
                 {
-                    b.HasOne("egibi_api.Data.Entities.AccountType", "AccountType")
-                        .WithMany()
-                        .HasForeignKey("AccountTypeId");
+                    b.HasOne("egibi_api.Data.Entities.Account", "Account")
+                        .WithOne("AccountApiDetails")
+                        .HasForeignKey("egibi_api.Data.Entities.AccountApiDetails", "AccountId");
 
-                    b.Navigation("AccountType");
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("egibi_api.Data.Entities.AccountDetails", b =>
@@ -869,6 +1044,39 @@ namespace egibi_api.Migrations
                     b.HasOne("egibi_api.Data.Entities.Account", "Account")
                         .WithOne("AccountDetails")
                         .HasForeignKey("egibi_api.Data.Entities.AccountDetails", "AccountId");
+
+                    b.HasOne("egibi_api.Data.Entities.AccountType", "AccountType")
+                        .WithMany()
+                        .HasForeignKey("AccountTypeId");
+
+                    b.Navigation("Account");
+
+                    b.Navigation("AccountType");
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.AccountFeeStructureDetails", b =>
+                {
+                    b.HasOne("egibi_api.Data.Entities.Account", "Account")
+                        .WithOne("AccountFeeStructureDetails")
+                        .HasForeignKey("egibi_api.Data.Entities.AccountFeeStructureDetails", "AccountId");
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.AccountSecurityDetails", b =>
+                {
+                    b.HasOne("egibi_api.Data.Entities.Account", "Account")
+                        .WithOne("AccountSecurityDetails")
+                        .HasForeignKey("egibi_api.Data.Entities.AccountSecurityDetails", "AccountId");
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.AccountStatusDetails", b =>
+                {
+                    b.HasOne("egibi_api.Data.Entities.Account", "Account")
+                        .WithOne("AccountStatusDetails")
+                        .HasForeignKey("egibi_api.Data.Entities.AccountStatusDetails", "AccountId");
 
                     b.Navigation("Account");
                 });
@@ -959,7 +1167,15 @@ namespace egibi_api.Migrations
 
             modelBuilder.Entity("egibi_api.Data.Entities.Account", b =>
                 {
+                    b.Navigation("AccountApiDetails");
+
                     b.Navigation("AccountDetails");
+
+                    b.Navigation("AccountFeeStructureDetails");
+
+                    b.Navigation("AccountSecurityDetails");
+
+                    b.Navigation("AccountStatusDetails");
                 });
 
             modelBuilder.Entity("egibi_api.Data.Entities.ExchangeFeeStructure", b =>

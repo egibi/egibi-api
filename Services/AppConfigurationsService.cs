@@ -3,16 +3,18 @@ using egibi_api.Data;
 using egibi_api.Data.Entities;
 using EgibiCoreLibrary.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
+using EntityType = EgibiCoreLibrary.Models.EntityType;
 
 namespace egibi_api.Services
 {
-    public class ServiceConfigurationsService
+    public class AppConfigurationsService
     {
         private readonly EgibiDbContext _db;
 
-        public ServiceConfigurationsService(EgibiDbContext db)
+        public AppConfigurationsService(EgibiDbContext db)
         {
             _db = db;
         }
@@ -40,14 +42,15 @@ namespace egibi_api.Services
 
                 await connection.CloseAsync();
 
+                if (tableNames != null && tableNames.Count > 0)
+                    tableNames = tableNames.OrderBy(tableName => tableName).ToList();
+
                 return new RequestResponse(tableNames, 200, "OK");
             }
             catch (Exception ex)
             {
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
-
-
         }
 
         public async Task<RequestResponse> GetEntityTypeRecords(string tableName)
@@ -150,6 +153,38 @@ namespace egibi_api.Services
             }
         }
 
+        public async Task<RequestResponse> DeleteEntityType(EntityType entityType)
+        {
+            var entityTypeTableName = entityType.TableName;                  // e.g., AccountType
+            var parentTableName = entityTypeTableName.Replace("Type", "");   // e.g., Account
+            var fkColumn = $"{entityTypeTableName}Id";                       // e.g., AccountTypeId
 
+            await using var conn = new NpgsqlConnection(_db.Database.GetConnectionString());
+            await conn.OpenAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            string Q(string ident) => new NpgsqlCommandBuilder().QuoteIdentifier(ident);
+
+            var sql = $@"
+            DELETE FROM {Q(entityTypeTableName)} t
+            WHERE t.""Id"" = @id
+            AND NOT EXISTS (
+                SELECT 1 FROM {Q(parentTableName)} p
+                WHERE p.{Q(fkColumn)} = @id
+            );";
+
+            await using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("id", entityType.Id);
+            var affected = await cmd.ExecuteNonQueryAsync();
+
+            await tx.CommitAsync();
+
+            if (affected == 0)
+                return new RequestResponse(null, 500, "Can't delete. EntityType in use");
+
+            //return new RequestResponse($"Deleted EntityType: {entityType.Name}", 200, "OK");
+            return new RequestResponse(entityType, 200, $"Deleted EntityType: {entityType.Name} from {entityType.TableName}");
+
+        }
     }
 }

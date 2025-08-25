@@ -17,25 +17,25 @@ namespace egibi_api.Data
                 .WithOne(a => a.Account)
                 .HasForeignKey<AccountDetails>(a => a.AccountId);
 
-            modelBuilder.Entity<Account>()
-                .HasOne(s => s.AccountSecurityDetails)
-                .WithOne(a => a.Account)
-                .HasForeignKey<AccountSecurityDetails>(a => a.AccountId);
+            //modelBuilder.Entity<Account>()
+            //    .HasOne(s => s.AccountSecurityDetails)
+            //    .WithOne(a => a.Account)
+            //    .HasForeignKey<AccountSecurityDetails>(a => a.AccountId);
 
-            modelBuilder.Entity<Account>()
-                .HasOne(api => api.AccountApiDetails)
-                .WithOne(a => a.Account)
-                .HasForeignKey<AccountApiDetails>(a => a.AccountId);
+            //modelBuilder.Entity<Account>()
+            //    .HasOne(api => api.AccountApiDetails)
+            //    .WithOne(a => a.Account)
+            //    .HasForeignKey<AccountApiDetails>(a => a.AccountId);
 
-            modelBuilder.Entity<Account>()
-                .HasOne(fees => fees.AccountFeeStructureDetails)
-                .WithOne(a => a.Account)
-                .HasForeignKey<AccountFeeStructureDetails>(a => a.AccountId);
+            //modelBuilder.Entity<Account>()
+            //    .HasOne(fees => fees.AccountFeeStructureDetails)
+            //    .WithOne(a => a.Account)
+            //    .HasForeignKey<AccountFeeStructureDetails>(a => a.AccountId);
 
-            modelBuilder.Entity<Account>()
-                .HasOne(status => status.AccountStatusDetails)
-                .WithOne(a => a.Account)
-                .HasForeignKey<AccountStatusDetails>(a => a.AccountId);
+            //modelBuilder.Entity<Account>()
+            //    .HasOne(status => status.AccountStatusDetails)
+            //    .WithOne(a => a.Account)
+            //    .HasForeignKey<AccountStatusDetails>(a => a.AccountId);
 
 
             base.OnModelCreating(modelBuilder);

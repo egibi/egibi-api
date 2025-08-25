@@ -3,6 +3,7 @@ using egibi_api.Data;
 using egibi_api.Data.Entities;
 using EgibiCoreLibrary.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Diagnostics.Eventing.Reader;
 using Account = egibi_api.Data.Entities.Account;
 
@@ -94,14 +95,25 @@ namespace egibi_api.Services
             }
         }
 
-        public async Task<RequestResponse> SaveAccount(Account account)
+        public async Task<RequestResponse> SaveAccount(Account account, bool newAccount, AccountDetails accountDetails = null)
         {
             try
             {
-                if (account.Id == 0)
-                    return await CreateNewAccount(account);
-                else
-                    return await UpdateExistingAccount(account);
+                if (account.Id == 0 || newAccount)
+
+                    if (accountDetails != null)
+                    {
+                        return await CreateNewAccount(account, accountDetails);
+                    }
+                    else
+                    {
+                        return await CreateNewAccount(account);
+                    }
+
+
+                    //return await CreateNewAccount(account, AccountDetails accountDetails);
+                    else
+                        return await UpdateExistingAccount(account);
 
 
             }
@@ -111,17 +123,17 @@ namespace egibi_api.Services
             }
         }
 
-        public async Task<RequestResponse> CreateNewAccount(Account account)
+        public async Task<RequestResponse> CreateNewAccount(Account account, AccountDetails accountDetails = null)
         {
             Account newAccount = new Account
             {
                 Name = account.Name,
                 //AccountTypeId = account.AccountType.Id,
-                Url = account.Url,
                 Description = account.Description,
                 Notes = account.Notes,
                 IsActive = true,
-                CreatedAt = DateTime.Now.ToUniversalTime()
+                CreatedAt = DateTime.Now.ToUniversalTime(),
+                AccountDetails = accountDetails
             };
 
             try
@@ -146,8 +158,7 @@ namespace egibi_api.Services
                     .FirstOrDefaultAsync();
 
                 existingAccount.Name = account.Name;
-                existingAccount.Url = account.Url;
-               // existingAccount.AccountTypeId = account.AccountType.Id;
+                // existingAccount.AccountTypeId = account.AccountType.Id;
                 existingAccount.Description = account.Description;
                 existingAccount.Notes = account.Notes;
                 existingAccount.IsActive = account.IsActive;
@@ -182,23 +193,98 @@ namespace egibi_api.Services
             }
         }
 
+        public async Task<RequestResponse> SaveAccountDetails(AccountDetails accountDetails)
+        {
+            try
+            {
+                var account = await _db.Accounts
+                    .FirstOrDefaultAsync(x => x.Id == accountDetails.AccountId);
+
+                if (account != null)
+                {
+                    // add details to existing account
+                }
+                else
+                {
+                    // create new account and apply details
+                    Account newAccount = new Account
+                    {
+                        AccountDetails = accountDetails,
+                        CreatedAt = DateTime.Now.ToUniversalTime(),
+                        Description = "New Account",
+                        IsActive = true,
+                        Name = accountDetails.Name
+                    };
+
+                    await CreateNewAccount(newAccount, accountDetails);
+                }
+
+                await _db.SaveChangesAsync();
+                return new RequestResponse(accountDetails, 200, "OK");
+            }
+            catch (Exception ex)
+            {
+                return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
+            }
+
+
+        }
+
         //public async Task<RequestResponse> SaveAccountDetails(AccountDetails accountDetails)
         //{
+        //    Account existingAccount = null;
+
         //    try
         //    {
-        //        var account = await _db.Accounts
-        //            .Where(w => w.Id == accountDetails.AccountId)
-        //            .Select(s => s.AccountDetails)
-        //            .FirstOrDefaultAsync();
+        //        existingAccount = await _db.Accounts
+        //           .Where(w => w.Id == accountDetails.AccountId)
+        //           .FirstOrDefaultAsync();
 
-        //        var existingAccountDetails = account.AccountDetails;
+        //        if (existingAccount == null)
+        //        {
+        //            // this is a new account, create new Account entity and apply AccountDetails
+        //            Account newAccount = new Account
+        //            {
+        //                Name = accountDetails.Name,
+        //                Description = "New account",
+        //                IsActive = true,
+        //                CreatedAt = DateTime.Now.ToUniversalTime()
+        //            };
 
+        //            await _db.AddAsync(newAccount);
+        //            await _db.SaveChangesAsync();
+
+        //            int newAccountId = newAccount.Id;
+        //            var recentlyCreatedAccount = await _db.Accounts
+        //                .FirstOrDefaultAsync(x => x.Id == newAccountId);
+
+        //            recentlyCreatedAccount.AccountDetails = accountDetails;
+        //            await _db.SaveChangesAsync();
+
+        //            return new RequestResponse(accountDetails, 200, "OK");
+        //        }
+        //        else
+        //        {
+        //            if(existingAccount != null)
+        //            {
+        //                AccountDetails existingAccountDetails = await _db.AccountDetails
+        //                    .Where(w => w.AccountId == existingAccount.Id)
+        //                    .FirstOrDefaultAsync();
+
+        //                if(existingAccountDetails != null)
+        //                {
+        //                    existingAccount.AccountDetails = accountDetails;
+        //                    await _db.SaveChangesAsync();
+        //                }
+        //            }
+
+        //            return new RequestResponse(accountDetails, 200, "OK");
+        //        }
         //    }
-        //    catch(Exception ex)
+        //    catch (Exception ex)
         //    {
         //        return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
         //    }
-
         //}
     }
 }

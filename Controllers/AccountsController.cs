@@ -2,6 +2,7 @@
 using EgibiCoreLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
 using Account = egibi_api.Data.Entities.Account;
+using AccountDetails = egibi_api.Data.Entities.AccountDetails;
 
 namespace egibi_api.Controllers
 {
@@ -36,9 +37,9 @@ namespace egibi_api.Controllers
         }
 
         [HttpPost("save-account")]
-        public async Task<RequestResponse> SaveAccount(Account account)
+        public async Task<RequestResponse> SaveAccount(Account account, bool newAccount)
         {
-            return await _accountsService.SaveAccount(account);
+            return await _accountsService.SaveAccount(account, newAccount );
         }
 
         [HttpDelete("delete-accounts")]
@@ -54,6 +55,11 @@ namespace egibi_api.Controllers
         }
 
         // DETAILS
+        [HttpPost("save-account-details")]
+        public async Task<RequestResponse> SaveAccountDetails(AccountDetails accountDetails)
+        {
+            return await _accountsService.SaveAccountDetails(accountDetails);
+        }
 
         // API
 

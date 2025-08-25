@@ -2,6 +2,5 @@
 {
     public class AccountType : EntityBase
     {
-        public int SortOrder { get; set; }
     }
 }

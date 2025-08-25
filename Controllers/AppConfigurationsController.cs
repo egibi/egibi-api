@@ -8,11 +8,11 @@ namespace egibi_api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ServiceConfigurationsController : ControllerBase
+    public class AppConfigurationsController : ControllerBase
     {
-        private readonly ServiceConfigurationsService _configurationService;
+        private readonly AppConfigurationsService _configurationService;
 
-        public ServiceConfigurationsController(ServiceConfigurationsService configurationService)
+        public AppConfigurationsController(AppConfigurationsService configurationService)
         {
             _configurationService = configurationService;
         }
@@ -33,6 +33,12 @@ namespace egibi_api.Controllers
         public async Task<RequestResponse> SaveEntityType([FromBody] EntityType entityType)
         {
             return await _configurationService.SaveEntityType(entityType);
+        }
+
+        [HttpPost("delete-entity-type")]
+        public async Task<RequestResponse> DeleteEntityType([FromBody] EntityType entityType)
+        {
+            return await _configurationService.DeleteEntityType(entityType);
         }
     }
 }
