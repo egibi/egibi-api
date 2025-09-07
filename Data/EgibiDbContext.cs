@@ -51,6 +51,7 @@ namespace egibi_api.Data
 
         public DbSet<Account> Accounts { get; set; }
         public DbSet<AccountType> AccountTypes { get; set; }
+        public DbSet<AccountUser> AccountUsers { get; set; }
         public DbSet<AccountDetails> AccountDetails { get; set; }
         public DbSet<Connection> Connections { get; set; }
         public DbSet<ConnectionType> ConnectionTypes { get; set; }

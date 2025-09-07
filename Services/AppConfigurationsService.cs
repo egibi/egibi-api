@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql;
+using System.Security.Principal;
 using EntityType = EgibiCoreLibrary.Models.EntityType;
 
 namespace egibi_api.Services
@@ -19,6 +20,9 @@ namespace egibi_api.Services
             _db = db;
         }
 
+        //=====================================================================================
+        // ENTITY TYPES
+        //=====================================================================================  
         public async Task<RequestResponse> GetEntityTypeTables()
         {
             try
@@ -128,7 +132,6 @@ namespace egibi_api.Services
                 using (var transaction = await _db.Database.BeginTransactionAsync())
                 {
                     var conn = (NpgsqlConnection)_db.Database.GetDbConnection();
-                    //await conn.OpenAsync();
 
                     string tableName = entityType.TableName; // make sure you validate this!
                     string sql = $"UPDATE \"{tableName}\" SET Name = @p1, Description = @p2, IsActive = @p3, LastModifiedAt = @p4, WHERE id = @id";
@@ -137,7 +140,7 @@ namespace egibi_api.Services
                     cmd.Parameters.AddWithValue("p1", entityType.Name);
                     cmd.Parameters.AddWithValue("p2", entityType.Description);
                     cmd.Parameters.AddWithValue("p3", entityType.IsActive);
-                    cmd.Parameters.AddWithValue("id", entityType.Id); // your record ID here
+                    cmd.Parameters.AddWithValue("id", entityType.Id);
 
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
                     Console.WriteLine($"Rows updated: {rowsAffected}");
@@ -182,8 +185,126 @@ namespace egibi_api.Services
             if (affected == 0)
                 return new RequestResponse(null, 500, "Can't delete. EntityType in use");
 
-            //return new RequestResponse($"Deleted EntityType: {entityType.Name}", 200, "OK");
             return new RequestResponse(entityType, 200, $"Deleted EntityType: {entityType.Name} from {entityType.TableName}");
+
+        }
+
+        //=====================================================================================
+        // ACCOUNT USERS
+        //=====================================================================================  
+        public async Task<RequestResponse> GetAccountUsers()
+        {
+            try
+            {
+                List<AccountUser> accountUsers = await _db.AccountUsers
+                    .ToListAsync();
+
+                return new RequestResponse(accountUsers, 200, "OK");
+            }
+            catch (Exception ex)
+            {
+                return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
+            }
+        }
+
+        public async Task<RequestResponse> SaveAccountUser(AccountUser accountUser)
+        {
+            try
+            {
+                if (accountUser.Id == 0)
+                    return await CreateAccountUser(accountUser);
+                else
+                    return await UpdateAccountUser(accountUser);
+            }
+            catch (Exception ex)
+            {
+                return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
+            }
+        }
+
+        private async Task<RequestResponse> CreateAccountUser(AccountUser accountUser)
+        {
+            AccountUser newAccountUser = new AccountUser
+            {
+                Email = accountUser.Email,
+                FirstName = accountUser.FirstName,
+                LastName = accountUser.LastName,
+                PhoneNumber = accountUser.PhoneNumber,
+                IsActive = true,
+                CreatedAt = DateTime.Now.ToUniversalTime()
+            };
+
+            try
+            {
+                await _db.AddAsync(newAccountUser);
+                await _db.SaveChangesAsync();
+
+                return new RequestResponse(newAccountUser, 200, "OK");
+            }
+            catch (Exception ex)
+            {
+                return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
+            }
+        }
+
+        private async Task<RequestResponse> UpdateAccountUser(AccountUser accountUser)
+        {
+            try
+            {
+                AccountUser existingAccountUser = await _db.AccountUsers
+                    .Where(w => w.Id == accountUser.Id)
+                    .FirstOrDefaultAsync();
+
+                existingAccountUser.Email = accountUser.Email;
+                existingAccountUser.FirstName = accountUser.FirstName;
+                existingAccountUser.LastName = accountUser.LastName;
+                existingAccountUser.PhoneNumber = accountUser.PhoneNumber;
+                existingAccountUser.IsActive = accountUser.IsActive;
+                existingAccountUser.LastModifiedAt = DateTime.Now.ToUniversalTime();
+
+                _db.Update(existingAccountUser);
+                await _db.SaveChangesAsync();
+
+                return new RequestResponse(accountUser, 200, "OK");
+            }
+            catch (Exception ex)
+            {
+                return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
+            }
+        }
+
+        // TODO: Need to handle situations where AccountUser is tied to other tables
+        public async Task<RequestResponse> DeleteAccountUser(AccountUser accountUser)
+        {
+
+            var parentTableName = "AccountUser";
+            var fkColumn = "AccountUserId";
+
+
+            await using var conn = new NpgsqlConnection(_db.Database.GetConnectionString());
+            await conn.OpenAsync();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            string Q(string ident) => new NpgsqlCommandBuilder().QuoteIdentifier(ident);
+
+            var sql = $@"
+            DELETE FROM {Q(parentTableName)} t
+            WHERE t.""Id"" = @id
+            AND NOT EXISTS (
+                SELECT 1 FROM {Q(parentTableName)} p
+                WHERE p.{Q(fkColumn)} = @id
+            );";
+
+            await using var cmd = new NpgsqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("id", accountUser.Id);
+            var affected = await cmd.ExecuteNonQueryAsync();
+
+            await tx.CommitAsync();
+
+            if (affected == 0)
+                return new RequestResponse(null, 500, "Can't delete. EntityType in use");
+            return new RequestResponse(accountUser, 200, $"Deleted AccountUser: {accountUser.Email} from {accountUser.Accounts}");
+
 
         }
     }

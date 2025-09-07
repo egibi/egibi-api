@@ -37,9 +37,9 @@ namespace egibi_api.Controllers
         }
 
         [HttpPost("save-account")]
-        public async Task<RequestResponse> SaveAccount(Account account, bool newAccount)
+        public async Task<RequestResponse> SaveAccount([FromBody] Account account)
         {
-            return await _accountsService.SaveAccount(account, newAccount );
+            return await _accountsService.SaveAccount(account);
         }
 
         [HttpDelete("delete-accounts")]

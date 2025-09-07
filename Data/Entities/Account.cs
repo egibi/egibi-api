@@ -3,8 +3,13 @@ namespace egibi_api.Data.Entities
 {
     public class Account : EntityBase
     {
+        public bool IsNewAccount { get; set; }
+
         public int? AccountTypeId { get; set; }
         public virtual AccountType AccountType { get; set; }
+
+        public int? AccountUserId { get; set; }
+        public virtual AccountUser AccountUser { get; set; }
 
         public int? AccountDetailsId { get; set; }
         public virtual AccountDetails AccountDetails { get; set; }

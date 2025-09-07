@@ -17,6 +17,9 @@ namespace egibi_api.Controllers
             _configurationService = configurationService;
         }
 
+        //=====================================================================================
+        // ENTITY TYPE OPERATIONS
+        //=====================================================================================
         [HttpGet("get-entity-type-tables")]
         public async Task<RequestResponse> GetEntityTypes()
         {
@@ -39,6 +42,27 @@ namespace egibi_api.Controllers
         public async Task<RequestResponse> DeleteEntityType([FromBody] EntityType entityType)
         {
             return await _configurationService.DeleteEntityType(entityType);
+        }
+
+        //=====================================================================================
+        // ACCOUNT USER OPERATIONS
+        //=====================================================================================
+        [HttpGet("get-account-users")]
+        public async Task<RequestResponse> GetAccountUsers()
+        {
+            return await _configurationService.GetAccountUsers();
+        }
+
+        [HttpPost("save-account-user")]
+        public async Task<RequestResponse> SaveAccountUser([FromBody] AccountUser accountUser)
+        {
+            return await _configurationService.SaveAccountUser(accountUser);
+        }
+
+        [HttpPost("delete-account-user")]
+        public async Task<RequestResponse> DeleteAccountUser(AccountUser accountUser)
+        {
+            return await _configurationService.DeleteAccountUser(accountUser);
         }
     }
 }

@@ -95,27 +95,14 @@ namespace egibi_api.Services
             }
         }
 
-        public async Task<RequestResponse> SaveAccount(Account account, bool newAccount, AccountDetails accountDetails = null)
+        public async Task<RequestResponse> SaveAccount(Account account)
         {
             try
             {
-                if (account.Id == 0 || newAccount)
-
-                    if (accountDetails != null)
-                    {
-                        return await CreateNewAccount(account, accountDetails);
-                    }
-                    else
-                    {
-                        return await CreateNewAccount(account);
-                    }
-
-
-                    //return await CreateNewAccount(account, AccountDetails accountDetails);
-                    else
-                        return await UpdateExistingAccount(account);
-
-
+                if (account.Id == 0 || account.IsNewAccount)
+                    return await CreateAccount(account);                
+                else
+                    return await UpdateAccount(account);
             }
             catch (Exception ex)
             {
@@ -123,7 +110,7 @@ namespace egibi_api.Services
             }
         }
 
-        public async Task<RequestResponse> CreateNewAccount(Account account, AccountDetails accountDetails = null)
+        private async Task<RequestResponse> CreateAccount(Account account)
         {
             Account newAccount = new Account
             {
@@ -133,7 +120,7 @@ namespace egibi_api.Services
                 Notes = account.Notes,
                 IsActive = true,
                 CreatedAt = DateTime.Now.ToUniversalTime(),
-                AccountDetails = accountDetails
+                AccountDetails = account.AccountDetails
             };
 
             try
@@ -149,7 +136,7 @@ namespace egibi_api.Services
             }
         }
 
-        public async Task<RequestResponse> UpdateExistingAccount(Account account)
+        private async Task<RequestResponse> UpdateAccount(Account account)
         {
             try
             {
@@ -216,7 +203,7 @@ namespace egibi_api.Services
                         Name = accountDetails.Name
                     };
 
-                    await CreateNewAccount(newAccount, accountDetails);
+                    await CreateAccount(newAccount);
                 }
 
                 await _db.SaveChangesAsync();
