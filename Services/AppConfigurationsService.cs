@@ -302,8 +302,9 @@ namespace egibi_api.Services
             await tx.CommitAsync();
 
             if (affected == 0)
-                return new RequestResponse(null, 500, "Can't delete. EntityType in use");
-            return new RequestResponse(accountUser, 200, $"Deleted AccountUser: {accountUser.Email} from {accountUser.Accounts}");
+                // TODO: Handle situation where user is tied to existing accounts
+                return new RequestResponse(null, 500, "Can't delete. EntityType in use"); 
+            return new RequestResponse(accountUser, 200, $"Deleted AccountUser: {accountUser.Email} from AccountUsers");
 
 
         }
