@@ -10,15 +10,19 @@
   <ItemGroup>
     <Compile Remove="ApiModels\**" />
     <Compile Remove="ClientModels\**" />
+    <Compile Remove="Files\TimeZone\**" />
     <Compile Remove="SDKs\**" />
     <Content Remove="ApiModels\**" />
     <Content Remove="ClientModels\**" />
+    <Content Remove="Files\TimeZone\**" />
     <Content Remove="SDKs\**" />
     <EmbeddedResource Remove="ApiModels\**" />
     <EmbeddedResource Remove="ClientModels\**" />
+    <EmbeddedResource Remove="Files\TimeZone\**" />
     <EmbeddedResource Remove="SDKs\**" />
     <None Remove="ApiModels\**" />
     <None Remove="ClientModels\**" />
+    <None Remove="Files\TimeZone\**" />
     <None Remove="SDKs\**" />
   </ItemGroup>
 
@@ -43,6 +47,10 @@
     <ProjectReference Include="..\EgibiCoreLibrary\EgibiCoreLibrary.csproj" />
     <ProjectReference Include="..\EgibiQuestDB\EgibiQuestDbSdk.csproj" />
     <ProjectReference Include="..\EgibiStrategyLibrary\EgibiStrategyLibrary.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Files\" />
   </ItemGroup>
 
 </Project>

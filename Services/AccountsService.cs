@@ -3,8 +3,6 @@ using egibi_api.Data;
 using egibi_api.Data.Entities;
 using EgibiCoreLibrary.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
-using System.Diagnostics.Eventing.Reader;
 using Account = egibi_api.Data.Entities.Account;
 
 namespace egibi_api.Services

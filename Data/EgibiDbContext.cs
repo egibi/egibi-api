@@ -1,5 +1,6 @@
 ﻿using egibi_api.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using TimeZone = egibi_api.Data.Entities.TimeZone;
 
 namespace egibi_api.Data
 {
@@ -68,5 +69,9 @@ namespace egibi_api.Data
         public DbSet<ExchangeFeeStructure> ExchangeFeeStructures { get; set; }
         public DbSet<ExchangeFeeStructureTier> ExchangeFeeStructureTiers { get; set; }
         public DbSet<ExchangeAccount> ExchangeAccounts { get; set; }
+        public DbSet<Country> Countries { get; set; }
+        public DbSet<TimeZone> TimeZones { get; set; }
+        public DbSet<CountryAdministrativeDivision> CountryAdministrativeDivisions { get; set; }
+        public DbSet<CountryAdministrativeDivisionType> CountryAdministrativeDivisionTypes { get; set; }
     }
 }
