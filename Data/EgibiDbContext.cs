@@ -46,8 +46,8 @@ namespace egibi_api.Data
             modelBuilder.Entity<DataFormatType>().HasData(DbSetup.GetDataFormatTypes());
             modelBuilder.Entity<DataFrequencyType>().HasData(DbSetup.GetDataFrequencyTypes());
             modelBuilder.Entity<DataProviderType>().HasData(DbSetup.GetDataProviderTypes());
-            modelBuilder.Entity<DataProviderType>().HasData(DbSetup.GetCountryData());
-            modelBuilder.Entity<DataProviderType>().HasData(DbSetup.GetTimeZoneData());
+            modelBuilder.Entity<Country>().HasData(DbSetup.GetCountryData());
+            modelBuilder.Entity<TimeZone>().HasData(DbSetup.GetTimeZoneData());
         }
 
         public EgibiDbContext(DbContextOptions<EgibiDbContext> options) : base(options) { }
