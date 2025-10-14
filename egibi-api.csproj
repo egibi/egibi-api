@@ -45,6 +45,7 @@
     <ProjectReference Include="..\EgibiBinanceUsSdk\EgibiBinanceUsSdk.csproj" />
     <ProjectReference Include="..\EgibiCoinbaseSDK\EgibiCoinbaseSdk.csproj" />
     <ProjectReference Include="..\EgibiCoreLibrary\EgibiCoreLibrary.csproj" />
+    <ProjectReference Include="..\EgibiGeoDateTimeDataLibrary\EgibiGeoDateTimeDataLibrary.csproj" />
     <ProjectReference Include="..\EgibiQuestDB\EgibiQuestDbSdk.csproj" />
     <ProjectReference Include="..\EgibiStrategyLibrary\EgibiStrategyLibrary.csproj" />
   </ItemGroup>

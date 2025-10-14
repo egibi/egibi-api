@@ -308,5 +308,18 @@ namespace egibi_api.Services
 
 
         }
+
+        //=====================================================================================
+        // GEO DATE TIME DATA
+        //=====================================================================================  
+        public async Task<RequestResponse> GetCountryData()
+        {
+            return null;
+        }
+
+        public async Task<RequestResponse> GetTimeZoneData()
+        {
+            return null;
+        }
     }
 }

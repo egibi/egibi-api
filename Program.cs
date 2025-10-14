@@ -68,6 +68,7 @@ namespace egibi_api
             builder.Services.AddScoped<AccountsService>();
             builder.Services.AddScoped(service => new QuestDbService(questDbConnectionString));
             builder.Services.AddScoped<TestingService>();
+            builder.Services.AddScoped<GeoDateTimeDataService>();
 
 
             // Allow large form limits. Will need to handle differently in future if hosted non-locally

@@ -12,15 +12,10 @@ using System.Reflection;
 using EgibiCoreLibrary;
 
 
+
 namespace egibi_api.Services
 {
     public class TestingService
     {
-        public async Task<RequestResponse> RunGeoDateTimeDataTest()
-        {
-            var result = GeoDateTimeDataHandler.GetGeoDateTimeData();
-
-            return null;
-        }
     }
 }

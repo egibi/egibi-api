@@ -64,5 +64,24 @@ namespace egibi_api.Controllers
         {
             return await _configurationService.DeleteAccountUser(accountUser);
         }
+
+        //=====================================================================================
+        // GEO DATETIME DATA
+        //=====================================================================================
+
+
+        [HttpGet("get-country-data")]
+        public async Task<RequestResponse> GetCountydata()
+        {
+            return await _configurationService.GetCountryData();
+        }
+
+        [HttpGet("get-timezone-data")]
+        public async Task<RequestResponse> GetTimeZoneData()
+        {
+            return await _configurationService.GetTimeZoneData();
+        }
+
+
     }
 }

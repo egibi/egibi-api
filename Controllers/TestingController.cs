@@ -14,11 +14,5 @@ namespace egibi_api.Controllers
         {
             _testingService = testingService;
         }
-
-        [HttpGet("run-geo-date-time-data-test")]
-        public async Task<RequestResponse> GetGeoDateTimeDataTest()
-        {
-            return await _testingService.RunGeoDateTimeDataTest();
-        }
     }
 }
