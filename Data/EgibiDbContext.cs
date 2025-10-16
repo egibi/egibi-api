@@ -46,8 +46,6 @@ namespace egibi_api.Data
             modelBuilder.Entity<DataFormatType>().HasData(DbSetup.GetDataFormatTypes());
             modelBuilder.Entity<DataFrequencyType>().HasData(DbSetup.GetDataFrequencyTypes());
             modelBuilder.Entity<DataProviderType>().HasData(DbSetup.GetDataProviderTypes());
-            modelBuilder.Entity<Country>().HasData(DbSetup.GetCountryData());
-            modelBuilder.Entity<TimeZone>().HasData(DbSetup.GetTimeZoneData());
         }
 
         public EgibiDbContext(DbContextOptions<EgibiDbContext> options) : base(options) { }
@@ -73,7 +71,5 @@ namespace egibi_api.Data
         public DbSet<ExchangeAccount> ExchangeAccounts { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<TimeZone> TimeZones { get; set; }
-        //public DbSet<CountryAdministrativeDivision> CountryAdministrativeDivisions { get; set; }
-        //public DbSet<CountryAdministrativeDivisionType> CountryAdministrativeDivisionTypes { get; set; }
     }
 }

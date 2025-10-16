@@ -1,5 +1,4 @@
 ﻿using egibi_api.Data.Entities;
-using EgibiCoreLibrary;
 using EgibiGeoDateTimeDataLibrary.Models;
 using Country = egibi_api.Data.Entities.Country;
 using TimeZone = egibi_api.Data.Entities.TimeZone;
@@ -204,18 +203,20 @@ namespace egibi_api.Data
 
             if (countryData != null && countryData.Count > 0)
             {
-                //TODO: Output new record creation during seeding process
+                int id = 1;
                 countryData.ForEach(cd =>
                 {
                     Country countryRecord = new Country()
                     {
+                        Id = id,
                         CountryCode = cd.CountryCode,
-                        CountryName = cd.CountryName,
-                        CreatedAt = DateTime.Now.ToUniversalTime(),
+                        CountryName = cd.CountryName, 
                         IsActive = true,
                     };
 
                     countryEntities.Add(countryRecord);
+
+                    id++;
                 });
             }
 
@@ -229,20 +230,30 @@ namespace egibi_api.Data
 
             if (timeZoneData != null && timeZoneData.Count > 0)
             {
+                int id = 1;
+
                 //TODO: Output new record creation during seeding process
                 timeZoneData.ForEach(tzd =>
                 {
                     TimeZone timeZoneRecord = new TimeZone()
                     {
+                        Id = id,
                         Abbreviation = tzd.Abbreviation,
                         CountryCode = tzd.CountryCode,
-                        CreatedAt = DateTime.Now.ToUniversalTime(),
+                        //CreatedAt = DateTime.Now.ToUniversalTime(),
                         IsActive = true,
+                        //Dst = EgibiGeoDateTimeDataLibrary.Utilities.ConvertDst(tzd.Dst),
+                        //GmtOffset = EgibiGeoDateTimeDataLibrary.Utilities.ConvertGmtOffset(tzd.GmtOffset),
+                        //TimeStart = EgibiGeoDateTimeDataLibrary.Utilities.ConvertTimeStart(tzd.TimeStart)
                         Dst = EgibiGeoDateTimeDataLibrary.Utilities.ConvertDst(tzd.Dst),
-                        GmtOffset = EgibiGeoDateTimeDataLibrary.Utilities.ConvertGmtOffset(tzd.GmtOffset),
-                        TimeStart = EgibiGeoDateTimeDataLibrary.Utilities.ConvertTimeStart(tzd.TimeStart)
+                        GmtOffset = null,
+                        TimeStart = null
                     };
-                });
+
+                    id++;
+
+                    timeZoneEntities.Add(timeZoneRecord);
+                });                
             }
 
             return timeZoneEntities;
