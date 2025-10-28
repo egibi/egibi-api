@@ -1,5 +1,6 @@
 #nullable disable
 using egibi_api.Data;
+using egibi_api.Hubs;
 using egibi_api.Services;
 using EgibiBinanceUsSdk;
 using Microsoft.AspNetCore.Http.Features;
@@ -70,6 +71,8 @@ namespace egibi_api
             builder.Services.AddScoped<TestingService>();
             builder.Services.AddScoped<GeoDateTimeDataService>();
 
+            builder.Services.AddSignalR();
+
 
             // Allow large form limits. Will need to handle differently in future if hosted non-locally
             builder.Services.Configure<FormOptions>(options =>
@@ -97,6 +100,10 @@ namespace egibi_api
             {
                 app.UseCors(CorsPolicyDev);
             }
+
+            // SignalR 
+            //app.MapHub<ProgressHub>("/progressHub");
+            app.MapHub<ChatHub>("/notificationHub");
 
             app.UseHttpsRedirection();
             app.UseAuthorization();
