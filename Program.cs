@@ -104,7 +104,7 @@ namespace egibi_api
             // SignalR 
             //app.MapHub<ProgressHub>("/progressHub");
             app.MapHub<ChatHub>("/notificationHub");
-            app.MapHub<FileUpload>("/file-upload-Hub");
+            app.MapHub<FileUploadHub>("/fileUploadHub");
 
             app.UseHttpsRedirection();
             app.UseAuthorization();
