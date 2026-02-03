@@ -24,6 +24,13 @@ namespace egibi_api.Data.Entities
         public string PhoneNumber { get; set; }
 
         /// <summary>
+        /// User role: "admin", "user", etc.
+        /// </summary>
+        [Required]
+        [MaxLength(50)]
+        public string Role { get; set; } = "user";
+
+        /// <summary>
         /// Bcrypt hash of the user's login password. ONE-WAY — cannot be decrypted.
         /// </summary>
         [Required]

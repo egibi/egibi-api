@@ -10,6 +10,10 @@ namespace egibi_api.Data
         {
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
+                // Skip OpenIddict entities — they manage their own table names
+                if (entityType.ClrType.Namespace?.StartsWith("OpenIddict") == true)
+                    continue;
+
                 modelBuilder.Entity(entityType.ClrType).ToTable(entityType.ClrType.Name);
             }
 
