@@ -50,6 +50,22 @@ namespace egibi_api.Data.Entities
         /// </summary>
         public int KeyVersion { get; set; } = 1;
 
+        // =============================================
+        // PASSWORD RESET
+        // =============================================
+
+        /// <summary>
+        /// Short-lived token for password reset. Hashed before storage.
+        /// Null when no reset is pending.
+        /// </summary>
+        [MaxLength(512)]
+        public string PasswordResetToken { get; set; }
+
+        /// <summary>
+        /// When the password reset token expires (UTC).
+        /// </summary>
+        public DateTime? PasswordResetTokenExpiry { get; set; }
+
         /// <summary>
         /// Navigation: all credential sets belonging to this user.
         /// </summary>

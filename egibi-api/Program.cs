@@ -11,6 +11,7 @@ using EgibiBinanceUsSdk;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
 
 namespace egibi_api
@@ -69,9 +70,12 @@ namespace egibi_api
                     options.AddPolicy(name: CorsPolicyDev,
                         policy =>
                         {
-                            policy.AllowAnyOrigin();
-                            policy.AllowAnyHeader();
-                            policy.AllowAnyMethod();
+                            policy.WithOrigins(
+                                    "http://localhost:4200",
+                                    "https://localhost:4200")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowCredentials(); // Required for cookie auth in OIDC flow
                         });
                 });
             }
@@ -166,12 +170,20 @@ namespace egibi_api
             {
                 options.Cookie.Name = "egibi.auth";
                 options.Cookie.HttpOnly = true;
-                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SameSite = SameSiteMode.None; // Required: Angular (4200) ↔ API (7182) are cross-origin
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Required when SameSite=None
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                 options.Events.OnRedirectToLogin = context =>
                 {
-                    // Return 401 instead of redirecting (API-friendly)
-                    context.Response.StatusCode = 401;
+                    // For API calls, return 401. For browser navigations (authorize endpoint), redirect to SPA login.
+                    if (context.Request.Path.StartsWithSegments("/connect"))
+                    {
+                        context.Response.Redirect("http://localhost:4200/auth/login");
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = 401;
+                    }
                     return Task.CompletedTask;
                 };
             });
@@ -243,7 +255,8 @@ namespace egibi_api
                 // Use the relational creator to check for and create tables.
                 // This works correctly even when the database was created externally (Docker init).
                 var creator = (Microsoft.EntityFrameworkCore.Storage.RelationalDatabaseCreator)
-                    db.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IDatabaseCreator>();
+                    db.Database.GetInfrastructure()
+                    .GetRequiredService<Microsoft.EntityFrameworkCore.Storage.IDatabaseCreator>();
 
                 try
                 {

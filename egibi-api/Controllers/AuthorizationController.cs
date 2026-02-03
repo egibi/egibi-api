@@ -1,6 +1,7 @@
 #nullable disable
 using System.Security.Claims;
 using egibi_api.Data;
+using egibi_api.Services;
 using egibi_api.Services.Security;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
@@ -18,6 +19,7 @@ namespace egibi_api.Controllers
     {
         private readonly EgibiDbContext _db;
         private readonly IEncryptionService _encryption;
+        private readonly AppUserService _userService;
         private readonly IOpenIddictApplicationManager _applicationManager;
         private readonly IOpenIddictAuthorizationManager _authorizationManager;
         private readonly IOpenIddictScopeManager _scopeManager;
@@ -25,12 +27,14 @@ namespace egibi_api.Controllers
         public AuthorizationController(
             EgibiDbContext db,
             IEncryptionService encryption,
+            AppUserService userService,
             IOpenIddictApplicationManager applicationManager,
             IOpenIddictAuthorizationManager authorizationManager,
             IOpenIddictScopeManager scopeManager)
         {
             _db = db;
             _encryption = encryption;
+            _userService = userService;
             _applicationManager = applicationManager;
             _authorizationManager = authorizationManager;
             _scopeManager = scopeManager;
@@ -38,11 +42,6 @@ namespace egibi_api.Controllers
 
         // =============================================
         // POST /connect/token
-        // =============================================
-        // Handles:
-        //   - authorization_code: exchanges auth code for tokens
-        //   - refresh_token: refreshes an expired access token
-        //   - client_credentials: service-to-service auth
         // =============================================
         [HttpPost("~/connect/token"), IgnoreAntiforgeryToken, Produces("application/json")]
         public async Task<IActionResult> Exchange()
@@ -52,7 +51,6 @@ namespace egibi_api.Controllers
 
             if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())
             {
-                // Retrieve the claims principal stored in the authorization code / refresh token
                 var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
                 if (!result.Succeeded)
@@ -117,15 +115,6 @@ namespace egibi_api.Controllers
         // =============================================
         // GET/POST /connect/authorize
         // =============================================
-        // For SPAs: the user is redirected here, authenticates, and gets
-        // an authorization code back to the redirect URI.
-        //
-        // Since we don't have a login UI served by the API (the Angular
-        // SPA handles login), we use a simplified approach:
-        //   1. SPA collects credentials and POSTs to /auth/login
-        //   2. On success, SPA initiates the OIDC auth code flow
-        //   3. This endpoint auto-approves for authenticated users
-        // =============================================
         [HttpGet("~/connect/authorize")]
         [HttpPost("~/connect/authorize")]
         [IgnoreAntiforgeryToken]
@@ -134,12 +123,9 @@ namespace egibi_api.Controllers
             var request = HttpContext.GetOpenIddictServerRequest()
                 ?? throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
-            // If the user is not authenticated, challenge them
-            var result = await HttpContext.AuthenticateAsync();
+            var result = await HttpContext.AuthenticateAsync("EgibiCookie");
             if (!result.Succeeded || request.HasPrompt(Prompts.Login))
             {
-                // For an API-based flow, return 401 so the SPA knows to show the login form
-                // and then POST credentials to /auth/login first
                 if (request.HasPrompt(Prompts.None))
                 {
                     return Forbid(
@@ -151,7 +137,7 @@ namespace egibi_api.Controllers
                         }));
                 }
 
-                // Redirect to the SPA's login page, passing the return URL
+                // Return the full authorize URL so the SPA can retry after login
                 var redirectUri = Request.PathBase + Request.Path + QueryString.Create(
                     Request.HasFormContentType ? Request.Form.ToList() : Request.Query.ToList());
 
@@ -160,7 +146,7 @@ namespace egibi_api.Controllers
                     properties: new AuthenticationProperties { RedirectUri = redirectUri });
             }
 
-            // Auto-approve: create claims principal from the authenticated user
+            // Auto-approve: create claims principal from the authenticated cookie
             var userId = result.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 ?? result.Principal.FindFirst(Claims.Subject)?.Value;
 
@@ -239,17 +225,15 @@ namespace egibi_api.Controllers
         // POST /connect/logout
         // =============================================
         [HttpPost("~/connect/logout"), IgnoreAntiforgeryToken]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            // Also clear the login cookie
+            await HttpContext.SignOutAsync("EgibiCookie");
             return SignOut(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
         // =============================================
-        // POST /auth/login  (Resource Owner — for SPA login form)
-        // =============================================
-        // This is NOT an OIDC endpoint. It's a convenience endpoint
-        // for the SPA to authenticate the user and set a cookie,
-        // so the OIDC authorize flow can proceed automatically.
+        // POST /auth/login  (Cookie-based — for SPA login form)
         // =============================================
         [HttpPost("~/auth/login")]
         [AllowAnonymous]
@@ -283,12 +267,99 @@ namespace egibi_api.Controllers
         }
 
         // =============================================
+        // POST /auth/signup
+        // =============================================
+        [HttpPost("~/auth/signup")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Signup([FromBody] SignupRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Email) || string.IsNullOrWhiteSpace(request?.Password))
+                return BadRequest(new { error = "Email and password are required." });
+
+            var (user, error) = await _userService.CreateUserAsync(
+                request.Email, request.Password, request.FirstName, request.LastName);
+
+            if (user == null)
+                return BadRequest(new { error });
+
+            // Auto-login after signup: set the cookie so the SPA can immediately
+            // proceed with the OIDC authorize flow
+            var identity = new ClaimsIdentity("EgibiCookie");
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+            identity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
+            identity.AddClaim(new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}".Trim()));
+            identity.AddClaim(new Claim(ClaimTypes.Role, user.Role));
+
+            await HttpContext.SignInAsync("EgibiCookie", new ClaimsPrincipal(identity));
+
+            return Ok(new
+            {
+                message = "Account created",
+                email = user.Email,
+                role = user.Role,
+                firstName = user.FirstName,
+                lastName = user.LastName
+            });
+        }
+
+        // =============================================
+        // POST /auth/forgot-password
+        // =============================================
+        [HttpPost("~/auth/forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Email))
+                return BadRequest(new { error = "Email is required." });
+
+            var token = await _userService.GeneratePasswordResetTokenAsync(request.Email);
+
+            // Always return success to prevent email enumeration attacks.
+            // In production, the token would be sent via email.
+            if (token != null)
+            {
+                // TODO: Send email with reset link:
+                //   {spaBaseUrl}/auth/reset-password?email={email}&token={token}
+                // For now, log it in development for testing
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AuthorizationController>>();
+                logger.LogWarning(
+                    "DEV ONLY — Password reset token for {Email}: {Token}",
+                    request.Email, token);
+            }
+
+            return Ok(new
+            {
+                message = "If an account with that email exists, a password reset link has been sent."
+            });
+        }
+
+        // =============================================
+        // POST /auth/reset-password
+        // =============================================
+        [HttpPost("~/auth/reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Email) ||
+                string.IsNullOrWhiteSpace(request?.Token) ||
+                string.IsNullOrWhiteSpace(request?.NewPassword))
+            {
+                return BadRequest(new { error = "Email, token, and new password are required." });
+            }
+
+            var (success, error) = await _userService.ResetPasswordAsync(
+                request.Email, request.Token, request.NewPassword);
+
+            if (!success)
+                return BadRequest(new { error });
+
+            return Ok(new { message = "Password has been reset. You can now log in." });
+        }
+
+        // =============================================
         // Helpers
         // =============================================
 
-        /// <summary>
-        /// Determines which claims go into which tokens (access token, ID token, etc.)
-        /// </summary>
         private static IEnumerable<string> GetDestinations(Claim claim)
         {
             switch (claim.Type)
@@ -306,7 +377,6 @@ namespace egibi_api.Controllers
                         yield return Destinations.IdentityToken;
                     yield break;
 
-                // Subject is always included in both tokens
                 case Claims.Subject:
                     yield return Destinations.AccessToken;
                     yield return Destinations.IdentityToken;
@@ -319,9 +389,33 @@ namespace egibi_api.Controllers
         }
     }
 
+    // =============================================
+    // REQUEST MODELS
+    // =============================================
+
     public class LoginRequest
     {
         public string Email { get; set; }
         public string Password { get; set; }
+    }
+
+    public class SignupRequest
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+    }
+
+    public class ForgotPasswordRequest
+    {
+        public string Email { get; set; }
+    }
+
+    public class ResetPasswordRequest
+    {
+        public string Email { get; set; }
+        public string Token { get; set; }
+        public string NewPassword { get; set; }
     }
 }
