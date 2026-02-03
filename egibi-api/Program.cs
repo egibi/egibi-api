@@ -30,6 +30,12 @@ namespace egibi_api
 
             Console.WriteLine($"env={builder.Environment.EnvironmentName}");
 
+            // Auto-start Docker databases in Development
+            if (builder.Environment.IsDevelopment())
+            {
+                await DevInfrastructure.EnsureDatabasesAsync(builder.Environment.ContentRootPath);
+            }
+
             if (builder.Environment.IsProduction())
             {
                 // TODO: Setup production connection strings when ready
@@ -110,16 +116,30 @@ namespace egibi_api
 
             var app = builder.Build();
 
-            // Initialize QuestDB ohlc table on startup
-            try
+            // Initialize QuestDB ohlc table on startup (with retries for container startup timing)
             {
                 var ohlcRepo = app.Services.GetRequiredService<IOhlcRepository>();
-                await ohlcRepo.EnsureTableExistsAsync();
-            }
-            catch (Exception ex)
-            {
                 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-                logger.LogWarning(ex, "Could not initialize QuestDB ohlc table. Is QuestDB running?");
+                const int maxRetries = 5;
+
+                for (int attempt = 1; attempt <= maxRetries; attempt++)
+                {
+                    try
+                    {
+                        await ohlcRepo.EnsureTableExistsAsync();
+                        logger.LogInformation("QuestDB ohlc table initialized successfully.");
+                        break;
+                    }
+                    catch (Exception ex) when (attempt < maxRetries)
+                    {
+                        logger.LogInformation("Waiting for QuestDB... attempt {Attempt}/{Max}", attempt, maxRetries);
+                        await Task.Delay(3000);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarning(ex, "Could not initialize QuestDB ohlc table after {Max} attempts. Is QuestDB running?", maxRetries);
+                    }
+                }
             }
 
             // Configure the HTTP request pipeline.

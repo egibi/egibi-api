@@ -230,7 +230,7 @@ namespace egibi_api.MarketData.Repositories
             await conn.OpenAsync();
 
             // Check if table exists
-            var checkSql = "SELECT count() FROM tables() WHERE name = 'ohlc'";
+            var checkSql = "SELECT count() FROM tables() WHERE table_name = 'ohlc'";
             await using var checkCmd = new NpgsqlCommand(checkSql, conn);
             var exists = (long)(await checkCmd.ExecuteScalarAsync() ?? 0L) > 0;
 

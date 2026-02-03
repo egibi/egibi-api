@@ -1,0 +1,58 @@
+# ============================================
+# Egibi Development Infrastructure
+# ============================================
+# Spins up PostgreSQL and QuestDB for local dev.
+# Usage:  docker compose up -d
+# Stop:   docker compose down
+# Reset:  docker compose down -v  (destroys data!)
+# ============================================
+
+services:
+
+  # --- PostgreSQL 16 (relational data) ---
+  egibi-postgres:
+    image: postgres:16-alpine
+    container_name: egibi-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: adamEgibiPostgres
+      POSTGRES_DB: egibi_app_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - egibi_pgdata:/var/lib/postgresql/data
+      - ./db/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d egibi_app_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # --- QuestDB 8.2.1 (time-series OHLC data) ---
+  egibi-questdb:
+    image: questdb/questdb:8.2.1
+    container_name: egibi-questdb
+    restart: unless-stopped
+    environment:
+      QDB_PG_USER: admin
+      QDB_PG_PASSWORD: quest
+      QDB_PG_READONLY_USER_ENABLED: "true"
+      QDB_TELEMETRY_ENABLED: "false"
+    ports:
+      - "9000:9000"   # Web Console & REST API
+      - "9009:9009"   # ILP (InfluxDB Line Protocol)
+      - "8812:8812"   # PostgreSQL wire protocol
+    volumes:
+      - egibi_questdb:/var/lib/questdb
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:9000 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  egibi_pgdata:
+    name: egibi_pgdata
+  egibi_questdb:
+    name: egibi_questdb
