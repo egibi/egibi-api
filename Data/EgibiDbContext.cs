@@ -13,6 +13,28 @@ namespace egibi_api.Data
                 modelBuilder.Entity(entityType.ClrType).ToTable(entityType.ClrType.Name);
             }
 
+            // AppUser — unique email, relationship to credentials
+            modelBuilder.Entity<AppUser>(entity =>
+            {
+                entity.HasIndex(e => e.Email).IsUnique();
+
+                entity.HasMany(u => u.Credentials)
+                    .WithOne(c => c.AppUser)
+                    .HasForeignKey(c => c.AppUserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // UserCredential — composite unique constraint (one credential set per user per connection)
+            modelBuilder.Entity<UserCredential>(entity =>
+            {
+                entity.HasIndex(c => new { c.AppUserId, c.ConnectionId }).IsUnique();
+
+                entity.HasOne(c => c.Connection)
+                    .WithMany()
+                    .HasForeignKey(c => c.ConnectionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
             modelBuilder.Entity<Account>()
                 .HasOne(ad => ad.AccountDetails)
                 .WithOne(a => a.Account)
@@ -49,6 +71,9 @@ namespace egibi_api.Data
         }
 
         public EgibiDbContext(DbContextOptions<EgibiDbContext> options) : base(options) { }
+
+        public DbSet<AppUser> AppUsers { get; set; }
+        public DbSet<UserCredential> UserCredentials { get; set; }
 
         public DbSet<Account> Accounts { get; set; }
         public DbSet<AccountType> AccountTypes { get; set; }
