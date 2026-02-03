@@ -1,0 +1,35 @@
+# === .NET ===
+**/bin/
+**/obj/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.nupkg
+**/packages/
+
+# === Docker ===
+.env
+backups/
+*.tar
+*.gz
+
+# === Node / Angular ===
+**/node_modules/
+**/dist/
+**/.angular/cache/
+
+# === IDE ===
+.idea/
+.history/
+*.swp
+*.swo
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Separate repos ===
+egibi-ui/
