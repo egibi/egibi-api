@@ -1,17 +1,20 @@
-﻿#nullable disable
+#nullable disable
+using egibi_api.Configuration;
 using egibi_api.Data;
 using egibi_api.Hubs;
+using egibi_api.MarketData.Fetchers;
+using egibi_api.MarketData.Repositories;
+using egibi_api.MarketData.Services;
 using egibi_api.Services;
 using EgibiBinanceUsSdk;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
-using egibi_api.Services.Security;
 
 namespace egibi_api
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var CorsPolicyDev = "_corsPolicyDev";
             var builder = WebApplication.CreateBuilder(args);
@@ -21,42 +24,11 @@ namespace egibi_api
 
             builder.Services.Configure<ConfigOptions>(builder.Configuration.GetSection("ConfigOptions"));
 
+            // QuestDB options binding
+            builder.Services.Configure<QuestDbOptions>(
+                builder.Configuration.GetSection(QuestDbOptions.SectionName));
+
             Console.WriteLine($"env={builder.Environment.EnvironmentName}");
-
-
-
-            // --- Encryption Service ---
-            // Master key lookup order: appsettings → environment variable → fail
-            string masterKey = builder.Configuration["Encryption:MasterKey"]
-                ?? Environment.GetEnvironmentVariable("EGIBI_MASTER_KEY");
-
-            if (string.IsNullOrWhiteSpace(masterKey))
-            {
-                if (builder.Environment.IsDevelopment())
-                {
-                    // Auto-generate a dev key on first run (logged to console so you can save it)
-                    masterKey = EncryptionService.GenerateMasterKey();
-                    Console.WriteLine("==========================================================");
-                    Console.WriteLine("WARNING: No master encryption key configured.");
-                    Console.WriteLine("A temporary key has been generated for this session:");
-                    Console.WriteLine(masterKey);
-                    Console.WriteLine("Save this in appsettings.Development.json under:");
-                    Console.WriteLine("  \"Encryption\": { \"MasterKey\": \"<paste here>\" }");
-                    Console.WriteLine("Data encrypted with this key will be unreadable if lost.");
-                    Console.WriteLine("==========================================================");
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        "Master encryption key not configured. " +
-                        "Set 'Encryption:MasterKey' in config or EGIBI_MASTER_KEY environment variable.");
-                }
-            }
-
-
-
-
-
 
             if (builder.Environment.IsProduction())
             {
@@ -71,7 +43,7 @@ namespace egibi_api
             if (builder.Environment.IsDevelopment())
             {
                 dbConnectionString = builder.Configuration.GetConnectionString("EgibiDb");
-                questDbConnectionString = builder.Configuration.GetConnectionString("EgibiQuestDb");
+                questDbConnectionString = builder.Configuration.GetConnectionString("QuestDb");
 
                 Console.WriteLine($"ConnectionString={dbConnectionString}");
 
@@ -107,9 +79,20 @@ namespace egibi_api
             builder.Services.AddScoped<TestingService>();
             builder.Services.AddScoped<GeoDateTimeDataService>();
 
-            builder.Services.AddSignalR();
+            // --- Market Data Services ---
+            builder.Services.AddSingleton<IOhlcRepository, OhlcRepository>();
 
-            builder.Services.AddSingleton<IEncryptionService>(new EncryptionService(masterKey));
+            builder.Services.AddHttpClient<BinanceFetcher>(client =>
+            {
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
+            builder.Services.AddSingleton<IMarketDataFetcher, BinanceFetcher>();
+            // Future: builder.Services.AddSingleton<IMarketDataFetcher, CoinbaseFetcher>();
+
+            builder.Services.AddSingleton<IMarketDataService, MarketDataService>();
+
+            builder.Services.AddSignalR();
 
 
             // Allow large form limits. Will need to handle differently in future if hosted non-locally
@@ -126,6 +109,18 @@ namespace egibi_api
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            // Initialize QuestDB ohlc table on startup
+            try
+            {
+                var ohlcRepo = app.Services.GetRequiredService<IOhlcRepository>();
+                await ohlcRepo.EnsureTableExistsAsync();
+            }
+            catch (Exception ex)
+            {
+                var logger = app.Services.GetRequiredService<ILogger<Program>>();
+                logger.LogWarning(ex, "Could not initialize QuestDB ohlc table. Is QuestDB running?");
+            }
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
