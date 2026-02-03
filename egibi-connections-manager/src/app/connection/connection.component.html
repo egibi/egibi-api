@@ -1,0 +1,23 @@
+<form [formGroup]="connectionDetailsForm">
+  <label for="name">Name</label>
+  <input class="form-control" type="text" id="name" formControlName="name" />
+
+  <label for="connectionType">Connection Type</label>
+  <select class="form-control" id="connectionType" formControlName="connectionTypeID">
+    <option *ngFor="let ct of connectionTypes" [value]="ct.connectionTypeID">
+      {{ ct.name }}
+    </option>
+  </select>
+
+  <label for="description">Description</label>
+  <input class="form-control" type="text" id="description" formControlName="description" />
+
+  <label for="baseUrl">Base URL</label>
+  <input class="form-control" type="text" id="baseUrl" formControlName="baseUrl" />
+
+  <label for="apiKey">API Key</label>
+  <input class="form-control" type="text" id="apiKey" formControlName="apiKey" />
+
+  <label for="apiSecretKey">API Secret Key</label>
+  <input class="form-control" type="text" id="apiSecretKey" formControlName="apiSecretKey" />
+</form>

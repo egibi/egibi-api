@@ -1,0 +1,69 @@
+<div class="container-fluid">
+  <div class="row">
+    <button type="button" class="btn btn-outline-warning" (click)="onActionSelect({ name: 'create' }, createModal, editModal, deleteModal)">Add New</button>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12 col-lg-12">
+      <div class="grid-container">
+        <connections-grid [connections]="connections" (actionSelect)="onActionSelect($event, createModal, editModal, deleteModal)"></connections-grid>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!---------------------------------------------------------------------------------------------------------------------------->
+<!-- CREATE CONNECTION MODAL -->
+<!--________________________________________________________________________________________________________________________-->
+<ng-template #createModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Connection Details</h4>
+    <button type="button" class="btn-close" (click)="modal.dismiss('create-cancel')"></button>
+  </div>
+  <div class="modal-body">
+    <connection #connectionComponent [connectionTypes]="connectionTypes"></connection>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" (click)="modal.close('create-save')">Save</button>
+  </div>
+</ng-template>
+<pre>{{ closeResult() }}</pre>
+<!-- ************************************************************************************************************************-->
+
+<!---------------------------------------------------------------------------------------------------------------------------->
+<!-- EDIT CONNECTION MODAL -->
+<!--________________________________________________________________________________________________________________________-->
+<ng-template #editModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Connection Details</h4>
+    <button type="button" class="btn-close" (click)="modal.dismiss('edit-cancel')"></button>
+  </div>
+  <div class="modal-body">
+    <connection #connectionComponent [connectionTypes]="connectionTypes" ></connection>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" (click)="modal.close('edit-save')">Save</button>
+  </div>
+</ng-template>
+<pre>{{ closeResult() }}</pre>
+<!-- ************************************************************************************************************************-->
+
+<!---------------------------------------------------------------------------------------------------------------------------->
+<!-- DELETE CONNECTION MODAL -->
+<!--________________________________________________________________________________________________________________________-->
+
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">Confirm Delete</h4>
+    <button type="button" class="btn-close" (click)="modal.dismiss('delete-cancel')"></button>
+  </div>
+  <div class="modal-body">
+    <p>DELETE</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary" (click)="modal.close('delete-confirm')">Confirm</button>
+  </div>
+</ng-template>
+
+<!-- <pre>{{ closeResult() }}</pre> -->
+<!-- ************************************************************************************************************************-->

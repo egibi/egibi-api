@@ -1,0 +1,14 @@
+  <ag-grid-angular
+    style="width: auto; height: 100%;"
+    [suppressCellFocus]="true"
+    [theme]="gridTheme"
+    [rowSelection]="rowSelection"
+    [modules]="modules"    
+    [rowData]="rowData"
+    [columnDefs]="columnDefs"
+    [defaultColDef]="defaultColDef"
+    [getRowId]="getRowId"
+    [components]="components"
+    (gridReady)="onGridReady($event)"
+    (selectionChanged)="onSelectionChanged($event)"    
+  ></ag-grid-angular>
