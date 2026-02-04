@@ -11,7 +11,6 @@ using EgibiBinanceUsSdk;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 using OpenIddict.Abstractions;
 
 namespace egibi_api
@@ -95,6 +94,7 @@ namespace egibi_api
             builder.Services.AddScoped(service => new QuestDbService(questDbConnectionString));
             builder.Services.AddScoped<TestingService>();
             builder.Services.AddScoped<GeoDateTimeDataService>();
+            builder.Services.AddScoped<StorageService>();
 
             // --- Security & Auth ---
             var masterKey = builder.Configuration["Encryption:MasterKey"];

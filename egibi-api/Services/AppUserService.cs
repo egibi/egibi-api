@@ -12,7 +12,6 @@ namespace egibi_api.Services
         private readonly EgibiDbContext _db;
         private readonly IEncryptionService _encryption;
         private readonly ILogger<AppUserService> _logger;
-
         public AppUserService(
             EgibiDbContext db,
             IEncryptionService encryption,
