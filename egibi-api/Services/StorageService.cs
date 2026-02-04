@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
+using egibi_api.Data;
+using egibi_api.Data.Entities;
 using egibi_api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -163,7 +165,7 @@ public class StorageService
 
             if (result != null)
             {
-                var dataset = result.GetProperty("dataset");
+                var dataset = result.Value.GetProperty("dataset");
                 foreach (var row in dataset.EnumerateArray())
                 {
                     var elements = row.EnumerateArray().ToList();

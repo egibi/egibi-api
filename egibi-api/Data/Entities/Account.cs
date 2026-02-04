@@ -14,6 +14,24 @@ namespace egibi_api.Data.Entities
         public int? AccountDetailsId { get; set; }
         public virtual AccountDetails AccountDetails { get; set; }
 
+        // =============================================
+        // SERVICE LINK
+        // =============================================
+
+        /// <summary>
+        /// The service/exchange this account is connected to.
+        /// Null for "custom" accounts with no predefined service.
+        /// </summary>
+        public int? ConnectionId { get; set; }
+        public virtual Connection Connection { get; set; }
+
+        /// <summary>
+        /// The authenticated user who owns this account.
+        /// Links to AppUser (OIDC-authenticated user) rather than legacy AccountUser.
+        /// </summary>
+        public int? AppUserId { get; set; }
+        public virtual AppUser AppUser { get; set; }
+
         //public int? AccountApiDetailsId { get; set; }
         //public virtual AccountApiDetails AccountApiDetails { get; set; }
 
@@ -25,7 +43,5 @@ namespace egibi_api.Data.Entities
 
         //public int? AccountStatusDetailsId { get; set; }
         //public AccountStatusDetails AccountStatusDetails { get; set; }
-
-
     }
 }

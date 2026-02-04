@@ -77,6 +77,7 @@ namespace egibi_api.Data
         public EgibiDbContext(DbContextOptions<EgibiDbContext> options) : base(options) { }
 
         public DbSet<AppUser> AppUsers { get; set; }
+        public DbSet<AppConfiguration> AppConfigurations { get; set; }
         public DbSet<UserCredential> UserCredentials { get; set; }
 
         public DbSet<Account> Accounts { get; set; }

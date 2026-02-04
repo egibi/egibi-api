@@ -35,30 +35,154 @@ namespace egibi_api.Data
         {
             List<Connection> connections = new List<Connection>
             {
+                // ===== CRYPTO EXCHANGES =====
                 new Connection
                 {
                     Id = 1,
                     Name = "Binance US",
-                    ConnectionTypeId = 1,
+                    Description = "US-regulated cryptocurrency exchange with 100+ trading pairs",
+                    ConnectionTypeId = 2,
                     IsDataSource = true,
                     IsActive = true,
-
+                    Category = "crypto_exchange",
+                    IconKey = "binance",
+                    Color = "#F0B90B",
+                    Website = "https://www.binance.us",
+                    DefaultBaseUrl = "https://api.binance.us",
+                    RequiredFields = "[\"api_key\",\"api_secret\"]",
+                    SortOrder = 1
                 },
                 new Connection
                 {
                     Id = 2,
                     Name = "Coinbase",
-                    ConnectionTypeId = 1,
+                    Description = "Leading US cryptocurrency exchange with advanced trading features",
+                    ConnectionTypeId = 2,
                     IsDataSource = true,
                     IsActive = true,
+                    Category = "crypto_exchange",
+                    IconKey = "coinbase",
+                    Color = "#0052FF",
+                    Website = "https://www.coinbase.com",
+                    DefaultBaseUrl = "https://api.coinbase.com",
+                    RequiredFields = "[\"api_key\",\"api_secret\"]",
+                    SortOrder = 2
                 },
                 new Connection
                 {
                     Id = 3,
+                    Name = "Coinbase Pro",
+                    Description = "Coinbase advanced trading platform with lower fees and API access",
+                    ConnectionTypeId = 2,
+                    IsDataSource = true,
+                    IsActive = true,
+                    Category = "crypto_exchange",
+                    IconKey = "coinbase",
+                    Color = "#0052FF",
+                    Website = "https://pro.coinbase.com",
+                    DefaultBaseUrl = "https://api.pro.coinbase.com",
+                    RequiredFields = "[\"api_key\",\"api_secret\",\"passphrase\"]",
+                    SortOrder = 3
+                },
+                new Connection
+                {
+                    Id = 4,
+                    Name = "Kraken",
+                    Description = "Global cryptocurrency exchange with margin trading and staking",
+                    ConnectionTypeId = 2,
+                    IsDataSource = true,
+                    IsActive = true,
+                    Category = "crypto_exchange",
+                    IconKey = "kraken",
+                    Color = "#7132F5",
+                    Website = "https://www.kraken.com",
+                    DefaultBaseUrl = "https://api.kraken.com",
+                    RequiredFields = "[\"api_key\",\"api_secret\"]",
+                    SortOrder = 4
+                },
+
+                // ===== STOCK BROKERS =====
+                new Connection
+                {
+                    Id = 5,
                     Name = "Charles Schwab",
-                    ConnectionTypeId = 1,
+                    Description = "Full-service brokerage with stocks, ETFs, options, and futures",
+                    ConnectionTypeId = 2,
                     IsDataSource = false,
                     IsActive = true,
+                    Category = "stock_broker",
+                    IconKey = "schwab",
+                    Color = "#00A0DF",
+                    Website = "https://www.schwab.com",
+                    DefaultBaseUrl = "https://api.schwabapi.com",
+                    RequiredFields = "[\"api_key\",\"api_secret\"]",
+                    SortOrder = 10
+                },
+                new Connection
+                {
+                    Id = 6,
+                    Name = "Alpaca",
+                    Description = "Commission-free API-first stock and crypto trading",
+                    ConnectionTypeId = 2,
+                    IsDataSource = true,
+                    IsActive = true,
+                    Category = "stock_broker",
+                    IconKey = "alpaca",
+                    Color = "#FFCD00",
+                    Website = "https://alpaca.markets",
+                    DefaultBaseUrl = "https://paper-api.alpaca.markets",
+                    RequiredFields = "[\"api_key\",\"api_secret\"]",
+                    SortOrder = 11
+                },
+                new Connection
+                {
+                    Id = 7,
+                    Name = "Interactive Brokers",
+                    Description = "Professional-grade brokerage for stocks, options, forex, and futures",
+                    ConnectionTypeId = 2,
+                    IsDataSource = true,
+                    IsActive = true,
+                    Category = "stock_broker",
+                    IconKey = "ibkr",
+                    Color = "#D81B2C",
+                    Website = "https://www.interactivebrokers.com",
+                    DefaultBaseUrl = "https://localhost:5000/v1/api",
+                    RequiredFields = "[\"username\",\"password\"]",
+                    SortOrder = 12
+                },
+
+                // ===== DATA PROVIDERS =====
+                new Connection
+                {
+                    Id = 8,
+                    Name = "Alpha Vantage",
+                    Description = "Free and premium stock, forex, and crypto market data APIs",
+                    ConnectionTypeId = 2,
+                    IsDataSource = true,
+                    IsActive = true,
+                    Category = "data_provider",
+                    IconKey = "alphavantage",
+                    Color = "#7B42BC",
+                    Website = "https://www.alphavantage.co",
+                    DefaultBaseUrl = "https://www.alphavantage.co/query",
+                    RequiredFields = "[\"api_key\"]",
+                    SortOrder = 20
+                },
+                new Connection
+                {
+                    Id = 9,
+                    Name = "Polygon.io",
+                    Description = "Real-time and historical market data for stocks, options, forex, and crypto",
+                    ConnectionTypeId = 2,
+                    IsDataSource = true,
+                    IsActive = true,
+                    Category = "data_provider",
+                    IconKey = "polygon",
+                    Color = "#7950F2",
+                    Website = "https://polygon.io",
+                    DefaultBaseUrl = "https://api.polygon.io",
+                    RequiredFields = "[\"api_key\"]",
+                    SortOrder = 21
                 }
             };
 
@@ -157,16 +281,8 @@ namespace egibi_api.Data
 
         public static List<Exchange> GetExchanges()
         {
-            List<Exchange> exchanges = new List<Exchange>
-            {
-                new Exchange
-                {
-                    Id = 1,
-                    Name = "Coinbase",
-                    Description = ""
-                }
-            };
-
+            // Exchange entity is for exchange metadata (fee structures, etc.)
+            // Connection entity is now the primary service catalog
             return null;
         }
 
@@ -240,11 +356,7 @@ namespace egibi_api.Data
                         Id = id,
                         Abbreviation = tzd.Abbreviation,
                         CountryCode = tzd.CountryCode,
-                        //CreatedAt = DateTime.Now.ToUniversalTime(),
                         IsActive = true,
-                        //Dst = EgibiGeoDateTimeDataLibrary.Utilities.ConvertDst(tzd.Dst),
-                        //GmtOffset = EgibiGeoDateTimeDataLibrary.Utilities.ConvertGmtOffset(tzd.GmtOffset),
-                        //TimeStart = EgibiGeoDateTimeDataLibrary.Utilities.ConvertTimeStart(tzd.TimeStart)
                         Dst = EgibiGeoDateTimeDataLibrary.Utilities.ConvertDst(tzd.Dst),
                         GmtOffset = null,
                         TimeStart = null
