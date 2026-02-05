@@ -95,6 +95,7 @@ namespace egibi_api
             builder.Services.AddScoped<TestingService>();
             builder.Services.AddScoped<GeoDateTimeDataService>();
             builder.Services.AddScoped<StorageService>();
+            builder.Services.AddHttpClient();
 
             // --- Security & Auth ---
             var masterKey = builder.Configuration["Encryption:MasterKey"];

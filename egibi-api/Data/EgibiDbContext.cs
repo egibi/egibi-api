@@ -101,5 +101,6 @@ namespace egibi_api.Data
         public DbSet<ExchangeAccount> ExchangeAccounts { get; set; }
         public DbSet<Country> Countries { get; set; }
         public DbSet<TimeZone> TimeZones { get; set; }
+        public DbSet<AccountFeeStructureDetails> AccountFeeStructureDetails { get; set; }
     }
 }

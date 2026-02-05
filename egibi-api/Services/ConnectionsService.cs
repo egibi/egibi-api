@@ -26,15 +26,7 @@ namespace egibi_api.Services
                     .Include("ConnectionType")
                     .ToListAsync();
 
-                //connections.ForEach(connection =>
-                //{
-                //    connection.ApiSecretKey =
-                //        !string.IsNullOrWhiteSpace(connection.ApiKey) ?
-                //        Encryptor.DecryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword) : null;
-                //});
-
                 return new RequestResponse(connections, 200, "OK");
-
             }
             catch (Exception ex)
             {
@@ -84,7 +76,6 @@ namespace egibi_api.Services
             {
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
-
         }
 
         public async Task<RequestResponse> DeleteConnection(int id)
@@ -123,29 +114,37 @@ namespace egibi_api.Services
 
         private async Task<RequestResponse> CreateNewConnection(Connection connection)
         {
-            int unknownConnectionId = _db.ConnectionTypes.FirstOrDefault(f => f.Name == "unknown").Id;
+            var apiType = await _db.ConnectionTypes.FirstOrDefaultAsync(f => f.Name == "api");
+            int defaultTypeId = apiType?.Id ?? _db.ConnectionTypes.FirstOrDefault()?.Id ?? 1;
 
             Connection newConnection = new Connection
             {
                 Name = connection.Name,
                 Description = connection.Description,
-                Id = connection.Id,
                 BaseUrl = connection.BaseUrl,
                 ApiKey = connection.ApiKey,
-                //ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword)
                 ApiSecretKey = connection.ApiSecretKey,
-                IsDataSource = connection.IsDataSource
-            };
+                IsDataSource = connection.IsDataSource,
+                ConnectionTypeId = connection.ConnectionTypeId ?? defaultTypeId,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
 
-            if (newConnection.Id == 0)
-                newConnection.Id = unknownConnectionId;
+                // Service catalog fields
+                Category = connection.Category,
+                IconKey = connection.IconKey,
+                Color = connection.Color,
+                Website = connection.Website,
+                DefaultBaseUrl = connection.DefaultBaseUrl,
+                RequiredFields = connection.RequiredFields,
+                SortOrder = connection.SortOrder
+            };
 
             try
             {
                 await _db.AddAsync(newConnection);
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(connection, 200, "OK");
+                return new RequestResponse(newConnection, 200, "OK");
             }
             catch (Exception ex)
             {
@@ -157,29 +156,39 @@ namespace egibi_api.Services
         {
             try
             {
-                Connection existingConnection = await _db.Connections
+                Connection existing = await _db.Connections
                     .Where(w => w.Id == connection.Id)
                     .FirstOrDefaultAsync();
 
-                existingConnection.Name = connection.Name;
-                existingConnection.Description = connection.Description;
-                existingConnection.Id = connection.Id;
-                existingConnection.BaseUrl = connection.BaseUrl;
-                existingConnection.ApiKey = connection.ApiKey;
-                //existingConnection.ApiSecretKey = Encryptor.EncryptString(connection.ApiSecretKey, _configOptions.EncryptionPassword);
-                existingConnection.ApiSecretKey = connection.ApiSecretKey;
-                existingConnection.IsDataSource = connection.IsDataSource;
+                if (existing == null)
+                    return new RequestResponse(null, 404, "Connection not found");
 
-                _db.Update(existingConnection);
+                // Legacy fields
+                existing.Name = connection.Name;
+                existing.Description = connection.Description;
+                existing.BaseUrl = connection.BaseUrl;
+                existing.ApiKey = connection.ApiKey;
+                existing.ApiSecretKey = connection.ApiSecretKey;
+                existing.IsDataSource = connection.IsDataSource;
+                existing.LastModifiedAt = DateTime.UtcNow;
+
+                // Service catalog fields
+                existing.Category = connection.Category;
+                existing.IconKey = connection.IconKey;
+                existing.Color = connection.Color;
+                existing.Website = connection.Website;
+                existing.DefaultBaseUrl = connection.DefaultBaseUrl;
+                existing.RequiredFields = connection.RequiredFields;
+                existing.SortOrder = connection.SortOrder;
+                existing.ConnectionTypeId = connection.ConnectionTypeId ?? existing.ConnectionTypeId;
+
+                _db.Update(existing);
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(connection, 200, "OK");
+                return new RequestResponse(existing, 200, "OK");
             }
             catch (Exception ex)
             {
-                var message = ex.Message;
-                var inner = ex.InnerException?.Message;
-
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }
