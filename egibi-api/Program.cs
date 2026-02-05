@@ -129,11 +129,17 @@ namespace egibi_api
                     // Require PKCE for authorization code flow (security best practice for SPAs)
                     options.RequireProofKeyForCodeExchange();
 
-                    // Register scopes
+                    // Token lifetimes
+                    options.SetAccessTokenLifetime(TimeSpan.FromHours(1));
+                    options.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
+
+                    // Register scopes (including offline_access for refresh tokens)
                     options.RegisterScopes(
+                        OpenIddictConstants.Scopes.OpenId,
                         OpenIddictConstants.Scopes.Email,
                         OpenIddictConstants.Scopes.Profile,
                         OpenIddictConstants.Scopes.Roles,
+                        OpenIddictConstants.Scopes.OfflineAccess,
                         "api");
 
                     // Use ASP.NET Core Data Protection for token format (development-friendly)
@@ -320,56 +326,65 @@ namespace egibi_api
             var logger = services.GetRequiredService<ILogger<Program>>();
 
             // --- egibi-ui (Angular SPA) ---
-            if (await manager.FindByClientIdAsync("egibi-ui") is null)
+            var descriptor = new OpenIddictApplicationDescriptor
             {
-                await manager.CreateAsync(new OpenIddictApplicationDescriptor
+                ClientId = "egibi-ui",
+                DisplayName = "Egibi Trading Platform",
+                ClientType = OpenIddictConstants.ClientTypes.Public, // SPA = public client (no secret)
+
+                // Redirect URIs for the Angular app
+                RedirectUris =
                 {
-                    ClientId = "egibi-ui",
-                    DisplayName = "Egibi Trading Platform",
-                    ClientType = OpenIddictConstants.ClientTypes.Public, // SPA = public client (no secret)
+                    new Uri("http://localhost:4200/auth/callback"),
+                    new Uri("https://localhost:4200/auth/callback")
+                },
+                PostLogoutRedirectUris =
+                {
+                    new Uri("http://localhost:4200"),
+                    new Uri("https://localhost:4200")
+                },
 
-                    // Redirect URIs for the Angular app
-                    RedirectUris =
-                    {
-                        new Uri("http://localhost:4200/auth/callback"),
-                        new Uri("https://localhost:4200/auth/callback")
-                    },
-                    PostLogoutRedirectUris =
-                    {
-                        new Uri("http://localhost:4200"),
-                        new Uri("https://localhost:4200")
-                    },
+                Permissions =
+                {
+                    // Endpoints
+                    OpenIddictConstants.Permissions.Endpoints.Authorization,
+                    OpenIddictConstants.Permissions.Endpoints.Token,
+                    OpenIddictConstants.Permissions.Endpoints.Logout,
 
-                    Permissions =
-                    {
-                        // Endpoints
-                        OpenIddictConstants.Permissions.Endpoints.Authorization,
-                        OpenIddictConstants.Permissions.Endpoints.Token,
-                        OpenIddictConstants.Permissions.Endpoints.Logout,
+                    // Grant types
+                    OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
+                    OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
 
-                        // Grant types
-                        OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode,
-                        OpenIddictConstants.Permissions.GrantTypes.RefreshToken,
+                    // Response types
+                    OpenIddictConstants.Permissions.ResponseTypes.Code,
 
-                        // Response types
-                        OpenIddictConstants.Permissions.ResponseTypes.Code,
+                    // Scopes
+                    OpenIddictConstants.Permissions.Scopes.Email,
+                    OpenIddictConstants.Permissions.Scopes.Profile,
+                    OpenIddictConstants.Permissions.Scopes.Roles,
+                    OpenIddictConstants.Permissions.Prefixes.Scope + "api",
+                    OpenIddictConstants.Permissions.Prefixes.Scope + "offline_access"
+                },
 
-                        // Scopes
-                        OpenIddictConstants.Permissions.Scopes.Email,
-                        OpenIddictConstants.Permissions.Scopes.Profile,
-                        OpenIddictConstants.Permissions.Scopes.Roles,
-                        OpenIddictConstants.Permissions.Prefixes.Scope + "api"
-                    },
+                // Require PKCE
+                Requirements =
+                {
+                    OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange
+                }
+            };
 
-                    // Require PKCE
-                    Requirements =
-                    {
-                        OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange
-                    }
-                });
-
+            var existing = await manager.FindByClientIdAsync("egibi-ui");
+            if (existing is null)
+            {
+                await manager.CreateAsync(descriptor);
                 logger.LogInformation("Seeded OIDC client: egibi-ui");
+            }
+            else
+            {
+                // Update existing client to ensure permissions are current
+                await manager.UpdateAsync(existing, descriptor);
+                logger.LogInformation("Updated OIDC client: egibi-ui");
+            }
             }
         }
     }
-}
