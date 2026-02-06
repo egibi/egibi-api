@@ -1,4 +1,6 @@
-﻿#nullable disable
+﻿// FILE: egibi-api/Services/StrategiesService.cs
+
+#nullable disable
 using egibi_api.Data;
 using EgibiCoreLibrary.Models;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +29,7 @@ namespace egibi_api.Services
 
                 return new RequestResponse(strategies, 200, "OK");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
@@ -74,7 +76,7 @@ namespace egibi_api.Services
 
                 return new RequestResponse(ids, 200, "Deleted");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new RequestResponse(ids, 500, "Problem Deleting", new ResponseError(ex));
             }
@@ -94,7 +96,11 @@ namespace egibi_api.Services
             {
                 Name = strategy.Name,
                 Description = strategy.Description,
-                InstanceName = strategy.InstanceName
+                StrategyClassName = strategy.StrategyClassName,
+                IsSimple = strategy.IsSimple,
+                ExchangeAccountId = strategy.ExchangeAccountId,
+                RulesConfiguration = strategy.RulesConfiguration,
+                CreatedAt = DateTime.UtcNow
             };
 
             try
@@ -102,9 +108,9 @@ namespace egibi_api.Services
                 await _db.AddAsync(newStrategy);
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(strategy, 200, "OK");
+                return new RequestResponse(newStrategy, 200, "OK");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
@@ -118,20 +124,21 @@ namespace egibi_api.Services
 
             existingStrategy.Name = strategy.Name;
             existingStrategy.Description = strategy.Description;
-            existingStrategy.InstanceName = strategy.InstanceName;
+            existingStrategy.StrategyClassName = strategy.StrategyClassName;
+            existingStrategy.IsSimple = strategy.IsSimple;
+            existingStrategy.ExchangeAccountId = strategy.ExchangeAccountId;
+            existingStrategy.RulesConfiguration = strategy.RulesConfiguration;
+            existingStrategy.UpdatedAt = DateTime.UtcNow;
 
             try
             {
                 _db.Update(existingStrategy);
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(strategy, 200, "OK");
+                return new RequestResponse(existingStrategy, 200, "OK");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                var message = ex.Message;
-                var inner = ex.InnerException?.Message;
-
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }

@@ -1,4 +1,6 @@
-﻿using egibi_api.Data.Entities;
+// FILE: egibi-api/Data/DbSetup.cs
+
+using egibi_api.Data.Entities;
 using EgibiGeoDateTimeDataLibrary.Models;
 using Country = egibi_api.Data.Entities.Country;
 using TimeZone = egibi_api.Data.Entities.TimeZone;
@@ -277,6 +279,50 @@ namespace egibi_api.Data
             };
 
             return dataFormatTypes;
+        }
+
+        public static List<BacktestStatus> GetBacktestStatuses()
+        {
+            List<BacktestStatus> backtestStatuses = new List<BacktestStatus>
+            {
+                new BacktestStatus
+                {
+                    Id = 1,
+                    Name = "Pending",
+                    Description = "Backtest is queued and waiting to execute",
+                    IsActive = true,
+                },
+                new BacktestStatus
+                {
+                    Id = 2,
+                    Name = "Running",
+                    Description = "Backtest is currently executing",
+                    IsActive = true,
+                },
+                new BacktestStatus
+                {
+                    Id = 3,
+                    Name = "Completed",
+                    Description = "Backtest finished successfully",
+                    IsActive = true,
+                },
+                new BacktestStatus
+                {
+                    Id = 4,
+                    Name = "Failed",
+                    Description = "Backtest encountered an error during execution",
+                    IsActive = true,
+                },
+                new BacktestStatus
+                {
+                    Id = 5,
+                    Name = "Cancelled",
+                    Description = "Backtest was cancelled before completion",
+                    IsActive = true,
+                }
+            };
+
+            return backtestStatuses;
         }
 
         public static List<Exchange> GetExchanges()

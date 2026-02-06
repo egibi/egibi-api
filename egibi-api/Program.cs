@@ -86,6 +86,7 @@ namespace egibi_api
             builder.Services.AddScoped<DataManagerService>();
             builder.Services.AddScoped<StrategiesService>();
             builder.Services.AddScoped<BacktesterService>();
+            builder.Services.AddScoped<egibi_api.Services.Backtesting.BacktestExecutionService>();
             builder.Services.AddScoped<ExchangesService>();
             builder.Services.AddScoped<MarketsService>();
             builder.Services.AddScoped<AppConfigurationsService>();
@@ -385,6 +386,6 @@ namespace egibi_api
                 await manager.UpdateAsync(existing, descriptor);
                 logger.LogInformation("Updated OIDC client: egibi-ui");
             }
-            }
         }
     }
+}

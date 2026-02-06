@@ -13,6 +13,11 @@ namespace egibi_api.Controllers
 
         public readonly ExchangeAccountsService _exchangeAccountsService;
 
+        public ExchangeAccounts(ExchangeAccountsService exchangeAccountsService)
+        {
+            _exchangeAccountsService = exchangeAccountsService;
+        }
+
         [HttpGet("get-exchange-accounts")]
         public async Task<RequestResponse> GetExchangeAccounts()
         {

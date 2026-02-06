@@ -1,4 +1,6 @@
-﻿using egibi_api.Data.Entities;
+// FILE: egibi-api/Data/EgibiDbContext.cs
+
+using egibi_api.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using TimeZone = egibi_api.Data.Entities.TimeZone;
 
@@ -72,6 +74,7 @@ namespace egibi_api.Data
             modelBuilder.Entity<DataFormatType>().HasData(DbSetup.GetDataFormatTypes());
             modelBuilder.Entity<DataFrequencyType>().HasData(DbSetup.GetDataFrequencyTypes());
             modelBuilder.Entity<DataProviderType>().HasData(DbSetup.GetDataProviderTypes());
+            modelBuilder.Entity<BacktestStatus>().HasData(DbSetup.GetBacktestStatuses());
         }
 
         public EgibiDbContext(DbContextOptions<EgibiDbContext> options) : base(options) { }
@@ -88,6 +91,7 @@ namespace egibi_api.Data
         public DbSet<ConnectionType> ConnectionTypes { get; set; }
         public DbSet<Strategy> Strategies { get; set; }
         public DbSet<Backtest> Backtests { get; set; }
+        public DbSet<BacktestStatus> BacktestStatuses { get; set; }
         public DbSet<DataProvider> DataProviders { get; set; }
         public DbSet<DataProviderType> DataProviderTypes { get; set; }
         public DbSet<DataFormatType> DataFormatTypes { get; set; }

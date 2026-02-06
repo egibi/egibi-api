@@ -1,4 +1,6 @@
-﻿#nullable disable
+﻿// FILE: egibi-api/Services/BacktesterService.cs
+
+#nullable disable
 using egibi_api.Data;
 using egibi_api.Data.Entities;
 using EgibiCoreLibrary.Models;
@@ -108,10 +110,12 @@ namespace egibi_api.Services
             Backtest newBacktest = new Backtest
             {
                 Name = backtest.Name,
-                Description = backtest.Description,
-                Start = backtest.Start,
-                End = backtest.End,
-                ConnectionId = backtest.ConnectionId
+                StrategyId = backtest.StrategyId,
+                BacktestStatusId = backtest.BacktestStatusId,
+                StartDate = backtest.StartDate,
+                EndDate = backtest.EndDate,
+                InitialCapital = backtest.InitialCapital,
+                CreatedAt = DateTime.UtcNow
             };
 
             try
@@ -119,7 +123,7 @@ namespace egibi_api.Services
                 await _db.AddAsync(newBacktest);
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(backtest, 200, "OK");
+                return new RequestResponse(newBacktest, 200, "OK");
             }
             catch (Exception ex)
             {
@@ -133,23 +137,21 @@ namespace egibi_api.Services
                 .FirstOrDefaultAsync();
 
             existingBacktest.Name = backtest.Name;
-            existingBacktest.Description = backtest.Description;
-            existingBacktest.Start = backtest.Start;
-            existingBacktest.End = backtest.End;
-            existingBacktest.ConnectionId = backtest.ConnectionId;
+            existingBacktest.StrategyId = backtest.StrategyId;
+            existingBacktest.BacktestStatusId = backtest.BacktestStatusId;
+            existingBacktest.StartDate = backtest.StartDate;
+            existingBacktest.EndDate = backtest.EndDate;
+            existingBacktest.InitialCapital = backtest.InitialCapital;
 
             try
             {
                 _db.Update(existingBacktest);
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(backtest, 200, "OK");
+                return new RequestResponse(existingBacktest, 200, "OK");
             }
             catch (Exception ex)
             {
-                var message = ex.Message;
-                var inner = ex.InnerException?.Message;
-
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
         }
