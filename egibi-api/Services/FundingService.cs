@@ -279,7 +279,7 @@ namespace egibi_api.Services
         {
             return iconKey switch
             {
-                "mercury" => "https://docs.mercury.com/reference/getting-api-keys",
+                "mercury" => "https://docs.mercury.com/reference/getting-started-with-your-api",
                 _ => ""
             };
         }
