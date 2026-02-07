@@ -84,13 +84,10 @@ namespace egibi_api
             builder.Services.AddScoped<ApiTesterService>();
             builder.Services.AddScoped<ConnectionsService>();
             builder.Services.AddScoped<DataManagerService>();
-            builder.Services.AddScoped<StrategiesService>();
             builder.Services.AddScoped<BacktesterService>();
             builder.Services.AddScoped<egibi_api.Services.Backtesting.BacktestExecutionService>();
-            builder.Services.AddScoped<ExchangesService>();
             builder.Services.AddScoped<MarketsService>();
             builder.Services.AddScoped<AppConfigurationsService>();
-            builder.Services.AddScoped<ExchangeAccountsService>();
             builder.Services.AddScoped<AccountsService>();
             builder.Services.AddScoped(service => new QuestDbService(questDbConnectionString));
             builder.Services.AddScoped<TestingService>();

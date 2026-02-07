@@ -8,7 +8,7 @@ namespace egibi_api.Models.Strategy;
 public class StrategyConfigurationDto
 {
     // ── Target Market ──────────────────────────────────────
-    public int? ExchangeAccountId { get; set; }
+    public int? AccountId { get; set; }
     public string Symbol { get; set; } = string.Empty;       // BTC-USD, ETH-USD
     public string Interval { get; set; } = "1h";              // 1m, 5m, 15m, 1h, 4h, 1d
 

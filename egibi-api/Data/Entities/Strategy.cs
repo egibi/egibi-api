@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace egibi_api.Data.Entities;
 
 /// <summary>
-/// Trading strategy definition.
+/// Automation strategy definition.
 /// 
 /// Two modes:
 ///   1. Simple (UI-created): RulesConfiguration contains JSON with indicator-based 
@@ -46,12 +46,12 @@ public class Strategy
     public bool IsSimple { get; set; } = true;
 
     /// <summary>
-    /// The exchange account this strategy targets for live trading.
+    /// The account this strategy targets for live execution.
     /// </summary>
-    public int? ExchangeAccountId { get; set; }
+    public int? AccountId { get; set; }
 
-    [ForeignKey(nameof(ExchangeAccountId))]
-    public virtual ExchangeAccount? ExchangeAccount { get; set; }
+    [ForeignKey(nameof(AccountId))]
+    public virtual Account? Account { get; set; }
 
     /// <summary>
     /// Is this strategy currently active for live trading?

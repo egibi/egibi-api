@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace egibi_api.Migrations
 {
     /// <inheritdoc />
-    public partial class AddAppConfiguration : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -99,6 +99,24 @@ namespace egibi_api.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AppUser", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BacktestStatus",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Notes = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastModifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BacktestStatus", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -311,25 +329,6 @@ namespace egibi_api.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_OpenIddictScopes", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Strategy",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    InstanceName = table.Column<string>(type: "text", nullable: true),
-                    Name = table.Column<string>(type: "text", nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    Notes = table.Column<string>(type: "text", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    LastModifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Strategy", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -572,44 +571,6 @@ namespace egibi_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Backtest",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Start = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    End = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ConnectionId = table.Column<int>(type: "integer", nullable: true),
-                    DataProviderId = table.Column<int>(type: "integer", nullable: true),
-                    StrategyId = table.Column<int>(type: "integer", nullable: true),
-                    Name = table.Column<string>(type: "text", nullable: true),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    Notes = table.Column<string>(type: "text", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    LastModifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Backtest", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Backtest_Connection_ConnectionId",
-                        column: x => x.ConnectionId,
-                        principalTable: "Connection",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Backtest_DataProvider_DataProviderId",
-                        column: x => x.DataProviderId,
-                        principalTable: "DataProvider",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Backtest_Strategy_StrategyId",
-                        column: x => x.StrategyId,
-                        principalTable: "Strategy",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Exchange",
                 columns: table => new
                 {
@@ -694,6 +655,60 @@ namespace egibi_api.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AccountFeeStructureDetails",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    MakerFeePercent = table.Column<decimal>(type: "numeric(8,4)", nullable: false),
+                    TakerFeePercent = table.Column<decimal>(type: "numeric(8,4)", nullable: false),
+                    FeeScheduleType = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    AccountId = table.Column<int>(type: "integer", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Notes = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastModifiedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AccountFeeStructureDetails", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AccountFeeStructureDetails_Account_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Account",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Strategy",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true),
+                    RulesConfiguration = table.Column<string>(type: "jsonb", nullable: true),
+                    StrategyClassName = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    IsSimple = table.Column<bool>(type: "boolean", nullable: false),
+                    AccountId = table.Column<int>(type: "integer", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Strategy", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Strategy_Account_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Account",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ExchangeAccount",
                 columns: table => new
                 {
@@ -725,6 +740,57 @@ namespace egibi_api.Migrations
                         column: x => x.ExchangeId,
                         principalTable: "Exchange",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Backtest",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
+                    StrategyId = table.Column<int>(type: "integer", nullable: false),
+                    BacktestStatusId = table.Column<int>(type: "integer", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    InitialCapital = table.Column<decimal>(type: "numeric", nullable: false),
+                    FinalCapital = table.Column<decimal>(type: "numeric", nullable: true),
+                    TotalReturnPct = table.Column<decimal>(type: "numeric", nullable: true),
+                    TotalTrades = table.Column<int>(type: "integer", nullable: true),
+                    WinRate = table.Column<decimal>(type: "numeric", nullable: true),
+                    MaxDrawdownPct = table.Column<decimal>(type: "numeric", nullable: true),
+                    SharpeRatio = table.Column<decimal>(type: "numeric", nullable: true),
+                    ResultJson = table.Column<string>(type: "jsonb", nullable: true),
+                    ExecutedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Backtest", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Backtest_BacktestStatus_BacktestStatusId",
+                        column: x => x.BacktestStatusId,
+                        principalTable: "BacktestStatus",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Backtest_Strategy_StrategyId",
+                        column: x => x.StrategyId,
+                        principalTable: "Strategy",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "BacktestStatus",
+                columns: new[] { "Id", "CreatedAt", "Description", "IsActive", "LastModifiedAt", "Name", "Notes" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Backtest is queued and waiting to execute", true, null, "Pending", null },
+                    { 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Backtest is currently executing", true, null, "Running", null },
+                    { 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Backtest finished successfully", true, null, "Completed", null },
+                    { 4, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Backtest encountered an error during execution", true, null, "Failed", null },
+                    { 5, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Backtest was cancelled before completion", true, null, "Cancelled", null }
                 });
 
             migrationBuilder.InsertData(
@@ -806,20 +872,20 @@ namespace egibi_api.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_AccountFeeStructureDetails_AccountId",
+                table: "AccountFeeStructureDetails",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AppUser_Email",
                 table: "AppUser",
                 column: "Email",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Backtest_ConnectionId",
+                name: "IX_Backtest_BacktestStatusId",
                 table: "Backtest",
-                column: "ConnectionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Backtest_DataProviderId",
-                table: "Backtest",
-                column: "DataProviderId");
+                column: "BacktestStatusId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Backtest_StrategyId",
@@ -900,6 +966,11 @@ namespace egibi_api.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Strategy_AccountId",
+                table: "Strategy",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserCredential_AppUserId_ConnectionId",
                 table: "UserCredential",
                 columns: new[] { "AppUserId", "ConnectionId" },
@@ -918,6 +989,9 @@ namespace egibi_api.Migrations
                 name: "AccountDetails");
 
             migrationBuilder.DropTable(
+                name: "AccountFeeStructureDetails");
+
+            migrationBuilder.DropTable(
                 name: "AppConfiguration");
 
             migrationBuilder.DropTable(
@@ -925,6 +999,9 @@ namespace egibi_api.Migrations
 
             migrationBuilder.DropTable(
                 name: "Country");
+
+            migrationBuilder.DropTable(
+                name: "DataProvider");
 
             migrationBuilder.DropTable(
                 name: "ExchangeAccount");
@@ -951,19 +1028,34 @@ namespace egibi_api.Migrations
                 name: "UserCredential");
 
             migrationBuilder.DropTable(
-                name: "Account");
-
-            migrationBuilder.DropTable(
-                name: "DataProvider");
+                name: "BacktestStatus");
 
             migrationBuilder.DropTable(
                 name: "Strategy");
+
+            migrationBuilder.DropTable(
+                name: "DataFormatType");
+
+            migrationBuilder.DropTable(
+                name: "DataFrequencyType");
+
+            migrationBuilder.DropTable(
+                name: "DataProviderType");
 
             migrationBuilder.DropTable(
                 name: "Exchange");
 
             migrationBuilder.DropTable(
                 name: "OpenIddictAuthorizations");
+
+            migrationBuilder.DropTable(
+                name: "Account");
+
+            migrationBuilder.DropTable(
+                name: "ExchangeFeeStructureTier");
+
+            migrationBuilder.DropTable(
+                name: "OpenIddictApplications");
 
             migrationBuilder.DropTable(
                 name: "AccountType");
@@ -978,25 +1070,10 @@ namespace egibi_api.Migrations
                 name: "Connection");
 
             migrationBuilder.DropTable(
-                name: "DataFormatType");
-
-            migrationBuilder.DropTable(
-                name: "DataFrequencyType");
-
-            migrationBuilder.DropTable(
-                name: "DataProviderType");
-
-            migrationBuilder.DropTable(
-                name: "ExchangeFeeStructureTier");
-
-            migrationBuilder.DropTable(
-                name: "OpenIddictApplications");
+                name: "ExchangeFeeStructure");
 
             migrationBuilder.DropTable(
                 name: "ConnectionType");
-
-            migrationBuilder.DropTable(
-                name: "ExchangeFeeStructure");
         }
     }
 }

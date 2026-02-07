@@ -566,20 +566,75 @@ namespace egibi_api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ConnectionId")
+                    b.Property<int>("BacktestStatusId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("DataProviderId")
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExecutedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal?>("FinalCapital")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("InitialCapital")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("MaxDrawdownPct")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("ResultJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<decimal?>("SharpeRatio")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("StrategyId")
                         .HasColumnType("integer");
+
+                    b.Property<decimal?>("TotalReturnPct")
+                        .HasColumnType("numeric");
+
+                    b.Property<int?>("TotalTrades")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("WinRate")
+                        .HasColumnType("numeric");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BacktestStatusId");
+
+                    b.HasIndex("StrategyId");
+
+                    b.ToTable("Backtest", (string)null);
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.BacktestStatus", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
-
-                    b.Property<DateTime?>("End")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -593,21 +648,51 @@ namespace egibi_api.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
-                    b.Property<DateTime?>("Start")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("StrategyId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ConnectionId");
+                    b.ToTable("BacktestStatus", (string)null);
 
-                    b.HasIndex("DataProviderId");
-
-                    b.HasIndex("StrategyId");
-
-                    b.ToTable("Backtest", (string)null);
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Backtest is queued and waiting to execute",
+                            IsActive = true,
+                            Name = "Pending"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Backtest is currently executing",
+                            IsActive = true,
+                            Name = "Running"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Backtest finished successfully",
+                            IsActive = true,
+                            Name = "Completed"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Backtest encountered an error during execution",
+                            IsActive = true,
+                            Name = "Failed"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Description = "Backtest was cancelled before completion",
+                            IsActive = true,
+                            Name = "Cancelled"
+                        });
                 });
 
             modelBuilder.Entity("egibi_api.Data.Entities.Connection", b =>
@@ -1436,28 +1521,40 @@ namespace egibi_api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<string>("InstanceName")
-                        .HasColumnType("text");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<bool>("IsSimple")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
+                    b.Property<string>("RulesConfiguration")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("StrategyClassName")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
 
                     b.ToTable("Strategy", (string)null);
                 });
@@ -1658,21 +1755,19 @@ namespace egibi_api.Migrations
 
             modelBuilder.Entity("egibi_api.Data.Entities.Backtest", b =>
                 {
-                    b.HasOne("egibi_api.Data.Entities.Connection", "Connection")
+                    b.HasOne("egibi_api.Data.Entities.BacktestStatus", "BacktestStatus")
                         .WithMany()
-                        .HasForeignKey("ConnectionId");
-
-                    b.HasOne("egibi_api.Data.Entities.DataProvider", "DataProvider")
-                        .WithMany()
-                        .HasForeignKey("DataProviderId");
+                        .HasForeignKey("BacktestStatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("egibi_api.Data.Entities.Strategy", "Strategy")
-                        .WithMany()
-                        .HasForeignKey("StrategyId");
+                        .WithMany("Backtests")
+                        .HasForeignKey("StrategyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Connection");
-
-                    b.Navigation("DataProvider");
+                    b.Navigation("BacktestStatus");
 
                     b.Navigation("Strategy");
                 });
@@ -1740,6 +1835,15 @@ namespace egibi_api.Migrations
                     b.Navigation("ExchangeFeeStructure");
                 });
 
+            modelBuilder.Entity("egibi_api.Data.Entities.Strategy", b =>
+                {
+                    b.HasOne("egibi_api.Data.Entities.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId");
+
+                    b.Navigation("Account");
+                });
+
             modelBuilder.Entity("egibi_api.Data.Entities.UserCredential", b =>
                 {
                     b.HasOne("egibi_api.Data.Entities.AppUser", "AppUser")
@@ -1789,6 +1893,11 @@ namespace egibi_api.Migrations
             modelBuilder.Entity("egibi_api.Data.Entities.ExchangeFeeStructure", b =>
                 {
                     b.Navigation("ExchangeFeeStructureTiers");
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.Strategy", b =>
+                {
+                    b.Navigation("Backtests");
                 });
 #pragma warning restore 612, 618
         }

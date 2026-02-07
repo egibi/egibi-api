@@ -42,8 +42,8 @@ public class StrategiesController : ControllerBase
     public async Task<ActionResult<RequestResponse>> GetAll()
     {
         var strategies = await _db.Strategies
-            .Include(s => s.ExchangeAccount)
-                .ThenInclude(ea => ea!.Exchange)
+            .Include(s => s.Account)
+                .ThenInclude(a => a!.Connection)
             .OrderBy(s => s.Name)
             .Select(s => new
             {
@@ -52,8 +52,9 @@ public class StrategiesController : ControllerBase
                 s.Description,
                 s.IsSimple,
                 s.IsActive,
-                s.ExchangeAccountId,
-                ExchangeName = s.ExchangeAccount != null ? s.ExchangeAccount.Exchange.Name : null,
+                s.AccountId,
+                AccountName = s.Account != null ? s.Account.Name : null,
+                ConnectionName = s.Account != null && s.Account.Connection != null ? s.Account.Connection.Name : null,
                 s.CreatedAt,
                 s.UpdatedAt,
                 BacktestCount = s.Backtests.Count
@@ -70,8 +71,8 @@ public class StrategiesController : ControllerBase
     public async Task<ActionResult<RequestResponse>> Get(int id)
     {
         var strategy = await _db.Strategies
-            .Include(s => s.ExchangeAccount)
-                .ThenInclude(ea => ea!.Exchange)
+            .Include(s => s.Account)
+                .ThenInclude(a => a!.Connection)
             .FirstOrDefaultAsync(s => s.Id == id);
 
         if (strategy == null)
@@ -93,7 +94,7 @@ public class StrategiesController : ControllerBase
                 strategy.Description,
                 strategy.IsSimple,
                 strategy.IsActive,
-                strategy.ExchangeAccountId,
+                strategy.AccountId,
                 strategy.StrategyClassName,
                 strategy.CreatedAt,
                 strategy.UpdatedAt,
@@ -113,7 +114,7 @@ public class StrategiesController : ControllerBase
             Name = request.Name,
             Description = request.Description,
             IsSimple = true,
-            ExchangeAccountId = request.Configuration?.ExchangeAccountId,
+            AccountId = request.Configuration?.AccountId,
             RulesConfiguration = request.Configuration != null
                 ? JsonSerializer.Serialize(request.Configuration)
                 : null,
@@ -143,7 +144,7 @@ public class StrategiesController : ControllerBase
 
         strategy.Name = request.Name;
         strategy.Description = request.Description;
-        strategy.ExchangeAccountId = request.Configuration?.ExchangeAccountId;
+        strategy.AccountId = request.Configuration?.AccountId;
         strategy.RulesConfiguration = request.Configuration != null
             ? JsonSerializer.Serialize(request.Configuration)
             : null;
