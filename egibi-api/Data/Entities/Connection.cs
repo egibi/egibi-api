@@ -71,5 +71,12 @@ namespace egibi_api.Data.Entities
         /// Lower numbers appear first.
         /// </summary>
         public int SortOrder { get; set; }
+
+        /// <summary>
+        /// How this provider is connected during setup.
+        /// Values: "api_key" (manual credential entry), "plaid_link" (Plaid Link widget), "oauth" (future).
+        /// Determines which wizard flow the frontend renders.
+        /// </summary>
+        public string LinkMethod { get; set; }
     }
 }

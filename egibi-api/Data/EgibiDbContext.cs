@@ -66,6 +66,33 @@ namespace egibi_api.Data
             //    .WithOne(a => a.Account)
             //    .HasForeignKey<AccountStatusDetails>(a => a.AccountId);
 
+            // PlaidItem — one per linked bank per user
+            modelBuilder.Entity<PlaidItem>(entity =>
+            {
+                entity.HasIndex(pi => new { pi.AppUserId, pi.PlaidItemId }).IsUnique();
+
+                entity.HasOne(pi => pi.AppUser)
+                    .WithMany()
+                    .HasForeignKey(pi => pi.AppUserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(pi => pi.Account)
+                    .WithMany()
+                    .HasForeignKey(pi => pi.AccountId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // PlaidAccount — multiple per PlaidItem
+            modelBuilder.Entity<PlaidAccount>(entity =>
+            {
+                entity.HasIndex(pa => new { pa.PlaidItemId, pa.PlaidAccountId }).IsUnique();
+
+                entity.HasOne(pa => pa.PlaidItem)
+                    .WithMany(pi => pi.PlaidAccounts)
+                    .HasForeignKey(pa => pa.PlaidItemId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
 
             base.OnModelCreating(modelBuilder);
 
@@ -106,5 +133,7 @@ namespace egibi_api.Data
         public DbSet<Country> Countries { get; set; }
         public DbSet<TimeZone> TimeZones { get; set; }
         public DbSet<AccountFeeStructureDetails> AccountFeeStructureDetails { get; set; }
+        public DbSet<PlaidItem> PlaidItems { get; set; }
+        public DbSet<PlaidAccount> PlaidAccounts { get; set; }
     }
 }

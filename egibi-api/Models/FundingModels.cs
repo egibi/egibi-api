@@ -31,6 +31,16 @@ namespace egibi_api.Models
         public string CredentialLabel { get; set; }
         public string MaskedApiKey { get; set; }
         public DateTime? CredentialLastUsedAt { get; set; }
+
+        /// <summary>
+        /// How this provider was connected: "api_key" or "plaid_link".
+        /// </summary>
+        public string LinkMethod { get; set; }
+
+        /// <summary>
+        /// Plaid-specific details (only populated for plaid_link sources).
+        /// </summary>
+        public PlaidFundingDetails PlaidDetails { get; set; }
     }
 
     // =============================================
@@ -52,6 +62,11 @@ namespace egibi_api.Models
         public string[] RequiredFields { get; set; }
         public string SignupUrl { get; set; }
         public string ApiDocsUrl { get; set; }
+
+        /// <summary>
+        /// How this provider connects: "api_key" or "plaid_link".
+        /// </summary>
+        public string LinkMethod { get; set; }
     }
 
     // =============================================

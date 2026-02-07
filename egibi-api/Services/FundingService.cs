@@ -58,12 +58,45 @@ namespace egibi_api.Services
                 ProviderColor = account.Connection?.Color ?? "",
                 ProviderWebsite = account.Connection?.Website ?? "",
                 BaseUrl = account.Connection?.DefaultBaseUrl ?? "",
+                LinkMethod = account.Connection?.LinkMethod ?? "api_key",
 
                 HasCredentials = credential != null,
                 CredentialLabel = credential?.Label ?? "",
                 MaskedApiKey = MaskValue(credential?.EncryptedApiKey, appUserId),
                 CredentialLastUsedAt = credential?.LastUsedAt,
             };
+
+            // If this is a Plaid-linked source, load Plaid details
+            if (account.Connection?.LinkMethod == "plaid_link")
+            {
+                var plaidItem = await _db.PlaidItems
+                    .Include(pi => pi.PlaidAccounts)
+                    .FirstOrDefaultAsync(pi => pi.AccountId == account.Id && pi.AppUserId == appUserId);
+
+                if (plaidItem != null)
+                {
+                    var selectedAccount = plaidItem.PlaidAccounts?.FirstOrDefault(a => a.IsSelectedFunding)
+                        ?? plaidItem.PlaidAccounts?.FirstOrDefault();
+
+                    response.HasCredentials = true;
+                    response.PlaidDetails = new PlaidFundingDetails
+                    {
+                        PlaidItemId = plaidItem.Id,
+                        InstitutionId = plaidItem.InstitutionId,
+                        InstitutionName = plaidItem.InstitutionName,
+                        LastSyncedAt = plaidItem.LastSyncedAt,
+                        PlaidAccountId = selectedAccount?.PlaidAccountId,
+                        AccountName = selectedAccount?.OfficialName ?? selectedAccount?.Name,
+                        Mask = selectedAccount?.Mask,
+                        AccountType = selectedAccount?.AccountType,
+                        AccountSubtype = selectedAccount?.AccountSubtype,
+                        AvailableBalance = selectedAccount?.AvailableBalance,
+                        CurrentBalance = selectedAccount?.CurrentBalance,
+                        IsoCurrencyCode = selectedAccount?.IsoCurrencyCode,
+                        BalanceLastUpdatedAt = selectedAccount?.BalanceLastUpdatedAt,
+                    };
+                }
+            }
 
             return new RequestResponse(response, 200, "OK");
         }
@@ -92,6 +125,7 @@ namespace egibi_api.Services
                     RequiredFields = ParseRequiredFields(c.RequiredFields),
                     SignupUrl = GetSignupUrl(c.IconKey),
                     ApiDocsUrl = GetApiDocsUrl(c.IconKey),
+                    LinkMethod = c.LinkMethod ?? "api_key",
                 })
                 .ToListAsync();
 

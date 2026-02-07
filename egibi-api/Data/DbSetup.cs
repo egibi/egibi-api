@@ -52,7 +52,8 @@ namespace egibi_api.Data
                     Website = "https://www.binance.us",
                     DefaultBaseUrl = "https://api.binance.us",
                     RequiredFields = "[\"api_key\",\"api_secret\"]",
-                    SortOrder = 1
+                    SortOrder = 1,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -68,7 +69,8 @@ namespace egibi_api.Data
                     Website = "https://www.coinbase.com",
                     DefaultBaseUrl = "https://api.coinbase.com",
                     RequiredFields = "[\"api_key\",\"api_secret\"]",
-                    SortOrder = 2
+                    SortOrder = 2,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -84,7 +86,8 @@ namespace egibi_api.Data
                     Website = "https://pro.coinbase.com",
                     DefaultBaseUrl = "https://api.pro.coinbase.com",
                     RequiredFields = "[\"api_key\",\"api_secret\",\"passphrase\"]",
-                    SortOrder = 3
+                    SortOrder = 3,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -100,7 +103,8 @@ namespace egibi_api.Data
                     Website = "https://www.kraken.com",
                     DefaultBaseUrl = "https://api.kraken.com",
                     RequiredFields = "[\"api_key\",\"api_secret\"]",
-                    SortOrder = 4
+                    SortOrder = 4,
+                    LinkMethod = "api_key"
                 },
 
                 // ===== STOCK BROKERS =====
@@ -118,7 +122,8 @@ namespace egibi_api.Data
                     Website = "https://www.schwab.com",
                     DefaultBaseUrl = "https://api.schwabapi.com",
                     RequiredFields = "[\"api_key\",\"api_secret\"]",
-                    SortOrder = 10
+                    SortOrder = 10,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -134,7 +139,8 @@ namespace egibi_api.Data
                     Website = "https://alpaca.markets",
                     DefaultBaseUrl = "https://paper-api.alpaca.markets",
                     RequiredFields = "[\"api_key\",\"api_secret\"]",
-                    SortOrder = 11
+                    SortOrder = 11,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -150,7 +156,8 @@ namespace egibi_api.Data
                     Website = "https://www.interactivebrokers.com",
                     DefaultBaseUrl = "https://localhost:5000/v1/api",
                     RequiredFields = "[\"username\",\"password\"]",
-                    SortOrder = 12
+                    SortOrder = 12,
+                    LinkMethod = "api_key"
                 },
 
                 // ===== DATA PROVIDERS =====
@@ -168,7 +175,8 @@ namespace egibi_api.Data
                     Website = "https://www.alphavantage.co",
                     DefaultBaseUrl = "https://www.alphavantage.co/query",
                     RequiredFields = "[\"api_key\"]",
-                    SortOrder = 20
+                    SortOrder = 20,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -184,7 +192,8 @@ namespace egibi_api.Data
                     Website = "https://polygon.io",
                     DefaultBaseUrl = "https://api.polygon.io",
                     RequiredFields = "[\"api_key\"]",
-                    SortOrder = 21
+                    SortOrder = 21,
+                    LinkMethod = "api_key"
                 },
 
                 // ===== FUNDING PROVIDERS =====
@@ -202,7 +211,25 @@ namespace egibi_api.Data
                     Website = "https://mercury.com",
                     DefaultBaseUrl = "https://api.mercury.com/api/v1",
                     RequiredFields = "[\"api_key\"]",
-                    SortOrder = 30
+                    SortOrder = 30,
+                    LinkMethod = "api_key"
+                },
+                new Connection
+                {
+                    Id = 11,
+                    Name = "Plaid",
+                    Description = "Link any US bank account for balance tracking, transactions, and ACH transfers",
+                    ConnectionTypeId = 2,
+                    IsDataSource = false,
+                    IsActive = true,
+                    Category = "funding_provider",
+                    IconKey = "plaid",
+                    Color = "#00D09C",
+                    Website = "https://plaid.com",
+                    DefaultBaseUrl = "https://development.plaid.com",
+                    RequiredFields = "[]",
+                    SortOrder = 31,
+                    LinkMethod = "plaid_link"
                 }
             };
 

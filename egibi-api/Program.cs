@@ -90,6 +90,7 @@ namespace egibi_api
             builder.Services.AddScoped<AppConfigurationsService>();
             builder.Services.AddScoped<AccountsService>();
             builder.Services.AddScoped<FundingService>();
+            builder.Services.AddScoped<PlaidService>();
             builder.Services.AddScoped(service => new QuestDbService(questDbConnectionString));
             builder.Services.AddScoped<TestingService>();
             builder.Services.AddScoped<GeoDateTimeDataService>();
