@@ -530,7 +530,10 @@ namespace egibi_api.Services
                 HasCredentials = credential != null,
                 CredentialLabel = credential?.Label ?? "",
                 MaskedApiKey = MaskValue(credential?.EncryptedApiKey),
-                CredentialLastUsedAt = credential?.LastUsedAt
+                CredentialLastUsedAt = credential?.LastUsedAt,
+
+                // Funding
+                IsPrimaryFunding = account.IsPrimaryFunding
             };
         }
 

@@ -185,6 +185,24 @@ namespace egibi_api.Data
                     DefaultBaseUrl = "https://api.polygon.io",
                     RequiredFields = "[\"api_key\"]",
                     SortOrder = 21
+                },
+
+                // ===== FUNDING PROVIDERS =====
+                new Connection
+                {
+                    Id = 10,
+                    Name = "Mercury",
+                    Description = "API-first banking for startups and businesses with free ACH transfers",
+                    ConnectionTypeId = 2,
+                    IsDataSource = false,
+                    IsActive = true,
+                    Category = "funding_provider",
+                    IconKey = "mercury",
+                    Color = "#5C5CFF",
+                    Website = "https://mercury.com",
+                    DefaultBaseUrl = "https://api.mercury.com/api/v1",
+                    RequiredFields = "[\"api_key\"]",
+                    SortOrder = 30
                 }
             };
 

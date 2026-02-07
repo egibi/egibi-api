@@ -32,6 +32,12 @@ namespace egibi_api.Data.Entities
         public int? AppUserId { get; set; }
         public virtual AppUser AppUser { get; set; }
 
+        /// <summary>
+        /// Marks this account as the user's primary funding source.
+        /// Only one account per user should have this set to true.
+        /// </summary>
+        public bool IsPrimaryFunding { get; set; }
+
         //public int? AccountApiDetailsId { get; set; }
         //public virtual AccountApiDetails AccountApiDetails { get; set; }
 

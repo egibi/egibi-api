@@ -99,6 +99,9 @@ namespace egibi_api.Models
         public string CredentialLabel { get; set; }
         public string MaskedApiKey { get; set; }
         public DateTime? CredentialLastUsedAt { get; set; }
+
+        // Funding
+        public bool IsPrimaryFunding { get; set; }
     }
 
     // =============================================
