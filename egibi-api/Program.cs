@@ -31,6 +31,10 @@ namespace egibi_api
             builder.Services.Configure<QuestDbOptions>(
                 builder.Configuration.GetSection(QuestDbOptions.SectionName));
 
+            // Plaid options binding
+            builder.Services.Configure<PlaidOptions>(
+                builder.Configuration.GetSection("Plaid"));
+
             Console.WriteLine($"env={builder.Environment.EnvironmentName}");
 
             // Auto-start Docker databases in Development
@@ -90,6 +94,7 @@ namespace egibi_api
             builder.Services.AddScoped<AppConfigurationsService>();
             builder.Services.AddScoped<AccountsService>();
             builder.Services.AddScoped<FundingService>();
+            builder.Services.AddHttpClient<PlaidApiClient>();
             builder.Services.AddScoped<PlaidService>();
             builder.Services.AddScoped(service => new QuestDbService(questDbConnectionString));
             builder.Services.AddScoped<TestingService>();
