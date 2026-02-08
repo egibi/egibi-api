@@ -1,10 +1,8 @@
 // FILE: egibi-api/Data/DbSetup.cs
-
 using egibi_api.Data.Entities;
 using EgibiGeoDateTimeDataLibrary.Models;
 using Country = egibi_api.Data.Entities.Country;
 using TimeZone = egibi_api.Data.Entities.TimeZone;
-
 
 namespace egibi_api.Data
 {
@@ -29,7 +27,6 @@ namespace egibi_api.Data
                     IsActive = true,
                 }
             };
-
             return connectionTypes;
         }
 
@@ -201,24 +198,26 @@ namespace egibi_api.Data
                 {
                     Id = 10,
                     Name = "Mercury",
-                    Description = "API-first banking for startups and businesses with free ACH transfers",
+                    Description = "Business banking with powerful API access for programmatic fund management",
                     ConnectionTypeId = 2,
                     IsDataSource = false,
                     IsActive = true,
                     Category = "funding_provider",
                     IconKey = "mercury",
-                    Color = "#5C5CFF",
+                    Color = "#6366F1",
                     Website = "https://mercury.com",
                     DefaultBaseUrl = "https://api.mercury.com/api/v1",
                     RequiredFields = "[\"api_key\"]",
                     SortOrder = 30,
+                    SignupUrl = "https://app.mercury.com/signup",
+                    ApiDocsUrl = "https://docs.mercury.com",
                     LinkMethod = "api_key"
                 },
                 new Connection
                 {
                     Id = 11,
                     Name = "Plaid",
-                    Description = "Link any US bank account for balance tracking, transactions, and ACH transfers",
+                    Description = "Connect any US bank account securely via Plaid Link",
                     ConnectionTypeId = 2,
                     IsDataSource = false,
                     IsActive = true,
@@ -226,13 +225,14 @@ namespace egibi_api.Data
                     IconKey = "plaid",
                     Color = "#00D09C",
                     Website = "https://plaid.com",
-                    DefaultBaseUrl = "https://development.plaid.com",
+                    DefaultBaseUrl = "https://production.plaid.com",
                     RequiredFields = "[]",
                     SortOrder = 31,
+                    SignupUrl = "",
+                    ApiDocsUrl = "https://plaid.com/docs",
                     LinkMethod = "plaid_link"
                 }
             };
-
             return connections;
         }
 
@@ -269,7 +269,6 @@ namespace egibi_api.Data
                     IsActive = true,
                 }
             };
-
             return dataProviderTypes;
         }
 
@@ -306,7 +305,6 @@ namespace egibi_api.Data
                     IsActive = true,
                 }
             };
-
             return dataFrequencyTypes;
         }
 
@@ -322,7 +320,6 @@ namespace egibi_api.Data
                     IsActive = true,
                 }
             };
-
             return dataFormatTypes;
         }
 
@@ -366,7 +363,6 @@ namespace egibi_api.Data
                     IsActive = true,
                 }
             };
-
             return backtestStatuses;
         }
 
@@ -393,13 +389,12 @@ namespace egibi_api.Data
             {
                 new CountryAdministrativeDivisionType()
                 {
-                  Id = 1,
-                  Name = "State",
-                  CreatedAt = DateTime.Now.ToUniversalTime(),
-                  IsActive = true
+                    Id = 1,
+                    Name = "State",
+                    CreatedAt = DateTime.Now.ToUniversalTime(),
+                    IsActive = true
                 }
             };
-
             return countryAdministrativeDivisionTypes;
         }
 
@@ -417,12 +412,11 @@ namespace egibi_api.Data
                     {
                         Id = id,
                         CountryCode = cd.CountryCode,
-                        CountryName = cd.CountryName, 
+                        CountryName = cd.CountryName,
                         IsActive = true,
                     };
 
                     countryEntities.Add(countryRecord);
-
                     id++;
                 });
             }
@@ -438,7 +432,6 @@ namespace egibi_api.Data
             if (timeZoneData != null && timeZoneData.Count > 0)
             {
                 int id = 1;
-
                 //TODO: Output new record creation during seeding process
                 timeZoneData.ForEach(tzd =>
                 {
@@ -454,13 +447,11 @@ namespace egibi_api.Data
                     };
 
                     id++;
-
                     timeZoneEntities.Add(timeZoneRecord);
-                });                
+                });
             }
 
             return timeZoneEntities;
         }
-
     }
 }
