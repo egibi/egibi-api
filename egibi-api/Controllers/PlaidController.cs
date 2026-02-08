@@ -27,13 +27,72 @@ namespace egibi_api.Controllers
         }
 
         // =============================================
-        // CREATE LINK TOKEN
+        // PLAID CONFIG MANAGEMENT
         // =============================================
 
         /// <summary>
-        /// Creates a Plaid link_token for initializing Plaid Link on the frontend.
-        /// The link_token expires after 4 hours.
+        /// Returns whether the current user has Plaid credentials configured.
         /// </summary>
+        [HttpGet("config/status")]
+        public async Task<RequestResponse> GetConfigStatus()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                return await _plaidService.GetPlaidConfigStatus(userId);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new RequestResponse(null, 401, "Unauthorized");
+            }
+        }
+
+        /// <summary>
+        /// Saves (creates or updates) the user's Plaid developer credentials.
+        /// </summary>
+        [HttpPost("config")]
+        public async Task<RequestResponse> SaveConfig([FromBody] PlaidConfigRequest request)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                return await _plaidService.SavePlaidConfig(request, userId);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new RequestResponse(null, 401, "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                return new RequestResponse(null, 500, "Failed to save Plaid configuration", new ResponseError(ex));
+            }
+        }
+
+        /// <summary>
+        /// Deletes the user's Plaid configuration.
+        /// </summary>
+        [HttpDelete("config")]
+        public async Task<RequestResponse> DeleteConfig()
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                return await _plaidService.DeletePlaidConfig(userId);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return new RequestResponse(null, 401, "Unauthorized");
+            }
+            catch (Exception ex)
+            {
+                return new RequestResponse(null, 500, "Failed to delete Plaid configuration", new ResponseError(ex));
+            }
+        }
+
+        // =============================================
+        // CREATE LINK TOKEN
+        // =============================================
+
         [HttpPost("create-link-token")]
         public async Task<RequestResponse> CreateLinkToken()
         {
@@ -56,10 +115,6 @@ namespace egibi_api.Controllers
         // EXCHANGE PUBLIC TOKEN
         // =============================================
 
-        /// <summary>
-        /// Exchanges a Plaid public_token for an access_token and creates
-        /// the funding source account with linked bank details.
-        /// </summary>
         [HttpPost("exchange-token")]
         public async Task<RequestResponse> ExchangeToken([FromBody] PlaidExchangeTokenRequest request)
         {
@@ -82,9 +137,6 @@ namespace egibi_api.Controllers
         // GET PLAID FUNDING DETAILS
         // =============================================
 
-        /// <summary>
-        /// Returns Plaid-specific details for a funding account.
-        /// </summary>
         [HttpGet("funding-details")]
         public async Task<RequestResponse> GetFundingDetails(int accountId)
         {
@@ -108,9 +160,6 @@ namespace egibi_api.Controllers
         // REFRESH BALANCES
         // =============================================
 
-        /// <summary>
-        /// Refreshes balance data for all accounts in a Plaid item.
-        /// </summary>
         [HttpPost("refresh-balances")]
         public async Task<RequestResponse> RefreshBalances(int plaidItemId)
         {
@@ -133,9 +182,6 @@ namespace egibi_api.Controllers
         // GET TRANSACTIONS
         // =============================================
 
-        /// <summary>
-        /// Fetches recent transactions for a Plaid item.
-        /// </summary>
         [HttpGet("transactions")]
         public async Task<RequestResponse> GetTransactions(int plaidItemId, int days = 30)
         {
@@ -158,9 +204,6 @@ namespace egibi_api.Controllers
         // GET AUTH (ACH NUMBERS)
         // =============================================
 
-        /// <summary>
-        /// Retrieves ACH account/routing numbers for a Plaid item.
-        /// </summary>
         [HttpGet("auth")]
         public async Task<RequestResponse> GetAuth(int plaidItemId)
         {
@@ -183,9 +226,6 @@ namespace egibi_api.Controllers
         // GET IDENTITY
         // =============================================
 
-        /// <summary>
-        /// Retrieves identity info for a Plaid item.
-        /// </summary>
         [HttpGet("identity")]
         public async Task<RequestResponse> GetIdentity(int plaidItemId)
         {
@@ -208,10 +248,6 @@ namespace egibi_api.Controllers
         // REMOVE ITEM
         // =============================================
 
-        /// <summary>
-        /// Revokes the Plaid access_token and removes the PlaidItem.
-        /// The Egibi Account is NOT deleted — just the Plaid link.
-        /// </summary>
         [HttpDelete("remove-item")]
         public async Task<RequestResponse> RemoveItem(int plaidItemId)
         {

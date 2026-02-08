@@ -7,9 +7,27 @@ using Microsoft.Extensions.Options;
 namespace egibi_api.Services
 {
     /// <summary>
+    /// Holds decrypted Plaid credentials for a single API call.
+    /// Created by PlaidService after decrypting the user's stored config.
+    /// </summary>
+    public class PlaidUserCredentials
+    {
+        public string ClientId { get; set; }
+        public string Secret { get; set; }
+        public string Environment { get; set; } = "sandbox";
+
+        public string BaseUrl => Environment?.ToLower() switch
+        {
+            "production" => "https://production.plaid.com",
+            "development" => "https://development.plaid.com",
+            _ => "https://sandbox.plaid.com"
+        };
+    }
+
+    /// <summary>
     /// Low-level HTTP client for the Plaid API.
-    /// Handles authentication, serialization, and error mapping.
-    /// All methods return typed response objects — no business logic or DB access.
+    /// Accepts per-user credentials on each call — no shared secrets.
+    /// PlaidOptions is only used for default Products/CountryCodes.
     /// </summary>
     public class PlaidApiClient
     {
@@ -23,8 +41,6 @@ namespace egibi_api.Services
             _http = http;
             _options = options.Value;
             _logger = logger;
-
-            _http.BaseAddress = new Uri(_options.BaseUrl);
 
             _jsonOptions = new JsonSerializerOptions
             {
@@ -40,12 +56,12 @@ namespace egibi_api.Services
         /// <summary>
         /// Creates a Plaid Link token for initializing the Link UI component.
         /// </summary>
-        public async Task<PlaidApiResponse<PlaidLinkTokenData>> CreateLinkToken(string userId)
+        public async Task<PlaidApiResponse<PlaidLinkTokenData>> CreateLinkToken(PlaidUserCredentials creds, string userId)
         {
             var payload = new
             {
-                client_id = _options.ClientId,
-                secret = _options.Secret,
+                client_id = creds.ClientId,
+                secret = creds.Secret,
                 user = new { client_user_id = userId },
                 client_name = "Egibi",
                 products = _options.Products,
@@ -55,18 +71,18 @@ namespace egibi_api.Services
                 webhook = _options.WebhookUrl
             };
 
-            return await PostAsync<PlaidLinkTokenData>("/link/token/create", payload);
+            return await PostAsync<PlaidLinkTokenData>(creds.BaseUrl, "/link/token/create", payload);
         }
 
         /// <summary>
         /// Creates a Link token in update mode for re-authenticating an existing item.
         /// </summary>
-        public async Task<PlaidApiResponse<PlaidLinkTokenData>> CreateUpdateLinkToken(string userId, string accessToken)
+        public async Task<PlaidApiResponse<PlaidLinkTokenData>> CreateUpdateLinkToken(PlaidUserCredentials creds, string userId, string accessToken)
         {
             var payload = new
             {
-                client_id = _options.ClientId,
-                secret = _options.Secret,
+                client_id = creds.ClientId,
+                secret = creds.Secret,
                 user = new { client_user_id = userId },
                 client_name = "Egibi",
                 country_codes = _options.CountryCodes,
@@ -74,7 +90,7 @@ namespace egibi_api.Services
                 access_token = accessToken
             };
 
-            return await PostAsync<PlaidLinkTokenData>("/link/token/create", payload);
+            return await PostAsync<PlaidLinkTokenData>(creds.BaseUrl, "/link/token/create", payload);
         }
 
         // =============================================
@@ -84,16 +100,16 @@ namespace egibi_api.Services
         /// <summary>
         /// Exchanges a public_token (from Link success) for a persistent access_token + item_id.
         /// </summary>
-        public async Task<PlaidApiResponse<PlaidExchangeData>> ExchangePublicToken(string publicToken)
+        public async Task<PlaidApiResponse<PlaidExchangeData>> ExchangePublicToken(PlaidUserCredentials creds, string publicToken)
         {
             var payload = new
             {
-                client_id = _options.ClientId,
-                secret = _options.Secret,
+                client_id = creds.ClientId,
+                secret = creds.Secret,
                 public_token = publicToken
             };
 
-            return await PostAsync<PlaidExchangeData>("/item/public_token/exchange", payload);
+            return await PostAsync<PlaidExchangeData>(creds.BaseUrl, "/item/public_token/exchange", payload);
         }
 
         // =============================================
@@ -103,16 +119,16 @@ namespace egibi_api.Services
         /// <summary>
         /// Retrieves real-time balance data for all accounts in a Plaid item.
         /// </summary>
-        public async Task<PlaidApiResponse<PlaidAccountsData>> GetBalances(string accessToken)
+        public async Task<PlaidApiResponse<PlaidAccountsData>> GetBalances(PlaidUserCredentials creds, string accessToken)
         {
             var payload = new
             {
-                client_id = _options.ClientId,
-                secret = _options.Secret,
+                client_id = creds.ClientId,
+                secret = creds.Secret,
                 access_token = accessToken
             };
 
-            return await PostAsync<PlaidAccountsData>("/accounts/balance/get", payload);
+            return await PostAsync<PlaidAccountsData>(creds.BaseUrl, "/accounts/balance/get", payload);
         }
 
         // =============================================
@@ -123,19 +139,19 @@ namespace egibi_api.Services
         /// Retrieves transactions for a date range.
         /// </summary>
         public async Task<PlaidApiResponse<PlaidTransactionsData>> GetTransactions(
-            string accessToken, DateTime startDate, DateTime endDate, int count = 100, int offset = 0)
+            PlaidUserCredentials creds, string accessToken, DateTime startDate, DateTime endDate, int count = 100, int offset = 0)
         {
             var payload = new
             {
-                client_id = _options.ClientId,
-                secret = _options.Secret,
+                client_id = creds.ClientId,
+                secret = creds.Secret,
                 access_token = accessToken,
                 start_date = startDate.ToString("yyyy-MM-dd"),
                 end_date = endDate.ToString("yyyy-MM-dd"),
                 options = new { count, offset }
             };
 
-            return await PostAsync<PlaidTransactionsData>("/transactions/get", payload);
+            return await PostAsync<PlaidTransactionsData>(creds.BaseUrl, "/transactions/get", payload);
         }
 
         // =============================================
@@ -145,16 +161,16 @@ namespace egibi_api.Services
         /// <summary>
         /// Retrieves ACH account/routing numbers for an item.
         /// </summary>
-        public async Task<PlaidApiResponse<PlaidAuthData>> GetAuth(string accessToken)
+        public async Task<PlaidApiResponse<PlaidAuthData>> GetAuth(PlaidUserCredentials creds, string accessToken)
         {
             var payload = new
             {
-                client_id = _options.ClientId,
-                secret = _options.Secret,
+                client_id = creds.ClientId,
+                secret = creds.Secret,
                 access_token = accessToken
             };
 
-            return await PostAsync<PlaidAuthData>("/auth/get", payload);
+            return await PostAsync<PlaidAuthData>(creds.BaseUrl, "/auth/get", payload);
         }
 
         // =============================================
@@ -164,16 +180,16 @@ namespace egibi_api.Services
         /// <summary>
         /// Retrieves identity information (name, email, phone) for an item.
         /// </summary>
-        public async Task<PlaidApiResponse<PlaidIdentityData>> GetIdentity(string accessToken)
+        public async Task<PlaidApiResponse<PlaidIdentityData>> GetIdentity(PlaidUserCredentials creds, string accessToken)
         {
             var payload = new
             {
-                client_id = _options.ClientId,
-                secret = _options.Secret,
+                client_id = creds.ClientId,
+                secret = creds.Secret,
                 access_token = accessToken
             };
 
-            return await PostAsync<PlaidIdentityData>("/identity/get", payload);
+            return await PostAsync<PlaidIdentityData>(creds.BaseUrl, "/identity/get", payload);
         }
 
         // =============================================
@@ -183,30 +199,32 @@ namespace egibi_api.Services
         /// <summary>
         /// Revokes the access_token, permanently invalidating it.
         /// </summary>
-        public async Task<PlaidApiResponse<PlaidRemoveData>> RemoveItem(string accessToken)
+        public async Task<PlaidApiResponse<PlaidRemoveData>> RemoveItem(PlaidUserCredentials creds, string accessToken)
         {
             var payload = new
             {
-                client_id = _options.ClientId,
-                secret = _options.Secret,
+                client_id = creds.ClientId,
+                secret = creds.Secret,
                 access_token = accessToken
             };
 
-            return await PostAsync<PlaidRemoveData>("/item/remove", payload);
+            return await PostAsync<PlaidRemoveData>(creds.BaseUrl, "/item/remove", payload);
         }
 
         // =============================================
         // HTTP HELPER
         // =============================================
 
-        private async Task<PlaidApiResponse<T>> PostAsync<T>(string endpoint, object payload) where T : class
+        private async Task<PlaidApiResponse<T>> PostAsync<T>(string baseUrl, string endpoint, object payload) where T : class
         {
             try
             {
                 var json = JsonSerializer.Serialize(payload, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _http.PostAsync(endpoint, content);
+                // Use full URL since base address varies per user's environment
+                var url = baseUrl.TrimEnd('/') + endpoint;
+                var response = await _http.PostAsync(url, content);
                 var body = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
@@ -249,10 +267,6 @@ namespace egibi_api.Services
     // PLAID API RESPONSE WRAPPER
     // =============================================
 
-    /// <summary>
-    /// Generic response wrapper for Plaid API calls.
-    /// Encapsulates success/failure without throwing exceptions.
-    /// </summary>
     public class PlaidApiResponse<T> where T : class
     {
         public bool IsSuccess { get; set; }
@@ -267,7 +281,7 @@ namespace egibi_api.Services
     }
 
     // =============================================
-    // PLAID API DATA MODELS (deserialized from JSON)
+    // PLAID API DATA MODELS
     // =============================================
 
     public class PlaidErrorBody

@@ -2,30 +2,12 @@
 namespace egibi_api.Configuration
 {
     /// <summary>
-    /// Configuration options for the Plaid API integration.
-    /// Bound from appsettings "Plaid" section.
+    /// App-level Plaid configuration defaults.
+    /// User-specific credentials (ClientId, Secret, Environment) are stored
+    /// per-user in the UserPlaidConfig table, encrypted with each user's DEK.
     /// </summary>
     public class PlaidOptions
     {
-        public string ClientId { get; set; }
-        public string Secret { get; set; }
-
-        /// <summary>
-        /// Plaid environment: "sandbox", "development", or "production".
-        /// Determines the base URL for API calls.
-        /// </summary>
-        public string Environment { get; set; } = "sandbox";
-
-        /// <summary>
-        /// Resolved base URL based on Environment.
-        /// </summary>
-        public string BaseUrl => Environment?.ToLower() switch
-        {
-            "production" => "https://production.plaid.com",
-            "development" => "https://development.plaid.com",
-            _ => "https://sandbox.plaid.com"
-        };
-
         /// <summary>
         /// Plaid products to request during Link (e.g., "auth", "transactions").
         /// </summary>

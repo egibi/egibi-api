@@ -225,7 +225,11 @@ namespace egibi_api
                     return Task.CompletedTask;
                 };
             });
-            builder.Services.AddAuthorization();
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy(egibi_api.Authorization.Policies.RequireAdmin, policy =>
+                    policy.RequireClaim(OpenIddictConstants.Claims.Role, egibi_api.Authorization.UserRoles.Admin));
+            });
 
             // --- Market Data Services ---
             builder.Services.AddSingleton<IOhlcRepository, OhlcRepository>();

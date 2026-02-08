@@ -60,6 +60,17 @@ namespace egibi_api.Data
                     .HasDatabaseName("IX_FundingSource_AppUserId_PrimaryUnique");
             });
 
+            // UserPlaidConfig — one Plaid config per user
+            modelBuilder.Entity<UserPlaidConfig>(entity =>
+            {
+                entity.HasIndex(e => e.AppUserId).IsUnique();
+
+                entity.HasOne(e => e.AppUser)
+                    .WithMany()
+                    .HasForeignKey(e => e.AppUserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<Account>()
                 .HasOne(ad => ad.AccountDetails)
                 .WithOne(a => a.Account)
@@ -124,5 +135,6 @@ namespace egibi_api.Data
         public DbSet<Country> Countries { get; set; }
         public DbSet<TimeZone> TimeZones { get; set; }
         public DbSet<AccountFeeStructureDetails> AccountFeeStructureDetails { get; set; }
+        public DbSet<UserPlaidConfig> UserPlaidConfigs { get; set; }
     }
 }

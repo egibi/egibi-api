@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore;
 namespace egibi_api.Services
 {
     /// <summary>
-    /// Orchestrates Plaid operations: combines PlaidApiClient (HTTP calls)
-    /// with database persistence and credential encryption.
-    /// Called by PlaidController — returns RequestResponse objects.
+    /// Orchestrates Plaid operations: resolves per-user credentials,
+    /// combines PlaidApiClient (HTTP calls) with database persistence
+    /// and credential encryption. Called by PlaidController.
     /// </summary>
     public class PlaidService
     {
@@ -33,17 +33,175 @@ namespace egibi_api.Services
         }
 
         // =============================================
-        // LINK TOKEN
+        // USER PLAID CONFIG MANAGEMENT
         // =============================================
 
         /// <summary>
-        /// Creates a Plaid Link token for the frontend to initialize Plaid Link.
+        /// Returns whether the user has Plaid credentials configured.
         /// </summary>
+        public async Task<RequestResponse> GetPlaidConfigStatus(int userId)
+        {
+            var config = await _db.UserPlaidConfigs
+                .FirstOrDefaultAsync(c => c.AppUserId == userId && c.IsActive);
+
+            return new RequestResponse(
+                new
+                {
+                    isConfigured = config != null,
+                    environment = config?.Environment ?? "sandbox",
+                    createdAt = config?.CreatedAt,
+                    lastModifiedAt = config?.LastModifiedAt
+                },
+                200, "OK");
+        }
+
+        /// <summary>
+        /// Saves (creates or updates) the user's Plaid developer credentials.
+        /// </summary>
+        public async Task<RequestResponse> SavePlaidConfig(PlaidConfigRequest request, int userId)
+        {
+            try
+            {
+                var appUser = await _db.AppUsers.FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+                if (appUser == null)
+                    return new RequestResponse(null, 404, "User not found");
+
+                if (string.IsNullOrEmpty(appUser.EncryptedDataKey))
+                    return new RequestResponse(null, 400, "User encryption key not configured");
+
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(request.ClientId) || string.IsNullOrWhiteSpace(request.Secret))
+                    return new RequestResponse(null, 400, "Client ID and Secret are required");
+
+                var validEnvs = new[] { "sandbox", "development", "production" };
+                var env = (request.Environment ?? "sandbox").ToLower();
+                if (!validEnvs.Contains(env))
+                    return new RequestResponse(null, 400, "Environment must be sandbox, development, or production");
+
+                // Encrypt credentials
+                var encryptedClientId = _encryption.Encrypt(request.ClientId.Trim(), appUser.EncryptedDataKey);
+                var encryptedSecret = _encryption.Encrypt(request.Secret.Trim(), appUser.EncryptedDataKey);
+
+                // Upsert
+                var existing = await _db.UserPlaidConfigs
+                    .FirstOrDefaultAsync(c => c.AppUserId == userId);
+
+                if (existing != null)
+                {
+                    existing.EncryptedClientId = encryptedClientId;
+                    existing.EncryptedSecret = encryptedSecret;
+                    existing.Environment = env;
+                    existing.IsActive = true;
+                    existing.LastModifiedAt = DateTime.UtcNow;
+                    _db.Update(existing);
+                }
+                else
+                {
+                    var config = new UserPlaidConfig
+                    {
+                        AppUserId = userId,
+                        EncryptedClientId = encryptedClientId,
+                        EncryptedSecret = encryptedSecret,
+                        Environment = env,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _db.AddAsync(config);
+                }
+
+                await _db.SaveChangesAsync();
+
+                _logger.LogInformation("Plaid config saved for user {UserId}, environment: {Env}", userId, env);
+                return new RequestResponse(new { environment = env }, 200, "Plaid configuration saved");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SavePlaidConfig failed for user {UserId}", userId);
+                return new RequestResponse(null, 500, "Failed to save Plaid configuration", new ResponseError(ex));
+            }
+        }
+
+        /// <summary>
+        /// Deletes the user's Plaid configuration.
+        /// </summary>
+        public async Task<RequestResponse> DeletePlaidConfig(int userId)
+        {
+            try
+            {
+                var config = await _db.UserPlaidConfigs
+                    .FirstOrDefaultAsync(c => c.AppUserId == userId);
+
+                if (config == null)
+                    return new RequestResponse(null, 404, "No Plaid configuration found");
+
+                _db.Remove(config);
+                await _db.SaveChangesAsync();
+
+                _logger.LogInformation("Plaid config deleted for user {UserId}", userId);
+                return new RequestResponse(null, 200, "Plaid configuration deleted");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DeletePlaidConfig failed for user {UserId}", userId);
+                return new RequestResponse(null, 500, "Failed to delete Plaid configuration", new ResponseError(ex));
+            }
+        }
+
+        // =============================================
+        // CREDENTIAL RESOLUTION
+        // =============================================
+
+        /// <summary>
+        /// Decrypts the user's stored Plaid credentials.
+        /// Returns (credentials, null) on success, or (null, errorResponse) on failure.
+        /// </summary>
+        private async Task<(PlaidUserCredentials creds, RequestResponse error)> GetUserPlaidCredentials(int userId)
+        {
+            var appUser = await _db.AppUsers.FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+            if (appUser == null)
+                return (null, new RequestResponse(null, 404, "User not found"));
+
+            if (string.IsNullOrEmpty(appUser.EncryptedDataKey))
+                return (null, new RequestResponse(null, 400, "User encryption key not configured"));
+
+            var config = await _db.UserPlaidConfigs
+                .FirstOrDefaultAsync(c => c.AppUserId == userId && c.IsActive);
+
+            if (config == null)
+                return (null, new RequestResponse(null, 400,
+                    "Plaid is not configured. Please set up your Plaid developer credentials in the Funding section before connecting a bank account."));
+
+            try
+            {
+                var clientId = _encryption.Decrypt(config.EncryptedClientId, appUser.EncryptedDataKey);
+                var secret = _encryption.Decrypt(config.EncryptedSecret, appUser.EncryptedDataKey);
+
+                return (new PlaidUserCredentials
+                {
+                    ClientId = clientId,
+                    Secret = secret,
+                    Environment = config.Environment
+                }, null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to decrypt Plaid credentials for user {UserId}", userId);
+                return (null, new RequestResponse(null, 500, "Failed to decrypt Plaid credentials"));
+            }
+        }
+
+        // =============================================
+        // LINK TOKEN
+        // =============================================
+
         public async Task<RequestResponse> CreateLinkToken(int userId)
         {
             try
             {
-                var response = await _plaidApi.CreateLinkToken(userId.ToString());
+                var (creds, error) = await GetUserPlaidCredentials(userId);
+                if (error != null) return error;
+
+                var response = await _plaidApi.CreateLinkToken(creds, userId.ToString());
 
                 if (!response.IsSuccess)
                     return new RequestResponse(null, 400, response.ErrorMessage ?? "Failed to create link token");
@@ -67,16 +225,15 @@ namespace egibi_api.Services
         // EXCHANGE PUBLIC TOKEN
         // =============================================
 
-        /// <summary>
-        /// Exchanges a Plaid public_token for an access_token, then creates
-        /// a FundingSource record with encrypted credentials and Plaid metadata.
-        /// </summary>
         public async Task<RequestResponse> ExchangePublicToken(PlaidExchangeTokenRequest request, int userId)
         {
             try
             {
+                var (creds, credError) = await GetUserPlaidCredentials(userId);
+                if (credError != null) return credError;
+
                 // 1. Exchange the public token via Plaid API
-                var exchangeResult = await _plaidApi.ExchangePublicToken(request.PublicToken);
+                var exchangeResult = await _plaidApi.ExchangePublicToken(creds, request.PublicToken);
                 if (!exchangeResult.IsSuccess)
                     return new RequestResponse(null, 400, exchangeResult.ErrorMessage ?? "Token exchange failed");
 
@@ -88,10 +245,7 @@ namespace egibi_api.Services
                 if (appUser == null)
                     return new RequestResponse(null, 404, "User not found");
 
-                if (string.IsNullOrEmpty(appUser.EncryptedDataKey))
-                    return new RequestResponse(null, 400, "User encryption key not configured");
-
-                // 3. Find the Plaid connection (seed ID = 11)
+                // 3. Find the Plaid connection
                 var plaidConnection = await _db.Connections
                     .FirstOrDefaultAsync(c => c.LinkMethod == "plaid_link" && c.Category == "funding_provider" && c.IsActive);
 
@@ -101,7 +255,7 @@ namespace egibi_api.Services
                 // 4. Encrypt the access token
                 var encryptedAccessToken = _encryption.Encrypt(accessToken, appUser.EncryptedDataKey);
 
-                // 5. Find the selected account metadata from the request
+                // 5. Find the selected account metadata
                 var selectedAccount = request.Accounts?.FirstOrDefault(a => a.Id == request.SelectedAccountId);
 
                 // 6. Demote any existing primary funding source
@@ -152,9 +306,6 @@ namespace egibi_api.Services
         // GET PLAID FUNDING DETAILS
         // =============================================
 
-        /// <summary>
-        /// Returns Plaid-specific details for a funding source (balances, account info).
-        /// </summary>
         public async Task<PlaidFundingDetails> GetPlaidFundingDetails(int fundingSourceId, int userId)
         {
             var fs = await _db.FundingSources
@@ -166,7 +317,7 @@ namespace egibi_api.Services
             return new PlaidFundingDetails
             {
                 PlaidItemId = int.TryParse(fs.PlaidItemId, out var pid) ? pid : 0,
-                InstitutionId = null, // Stored on the Plaid side, not in our DB
+                InstitutionId = null,
                 InstitutionName = fs.Description,
                 PlaidAccountId = fs.PlaidAccountId,
                 AccountName = fs.PlaidAccountName,
@@ -179,21 +330,20 @@ namespace egibi_api.Services
         // REFRESH BALANCES
         // =============================================
 
-        /// <summary>
-        /// Refreshes balance data from Plaid for a funding source.
-        /// </summary>
         public async Task<RequestResponse> RefreshBalances(int fundingSourceId, int userId)
         {
             try
             {
+                var (creds, credError) = await GetUserPlaidCredentials(userId);
+                if (credError != null) return credError;
+
                 var (accessToken, error) = await GetDecryptedAccessToken(fundingSourceId, userId);
                 if (error != null) return error;
 
-                var result = await _plaidApi.GetBalances(accessToken);
+                var result = await _plaidApi.GetBalances(creds, accessToken);
                 if (!result.IsSuccess)
                     return new RequestResponse(null, 400, result.ErrorMessage ?? "Failed to fetch balances");
 
-                // Map to response model
                 var balances = result.Data.Accounts?.Select(a => new PlaidBalanceResponse
                 {
                     PlaidAccountId = a.AccountId,
@@ -206,7 +356,6 @@ namespace egibi_api.Services
                     IsoCurrencyCode = a.Balances?.IsoCurrencyCode
                 }).ToArray();
 
-                // Update last synced timestamp
                 var fs = await _db.FundingSources.FindAsync(fundingSourceId);
                 if (fs != null)
                 {
@@ -227,20 +376,20 @@ namespace egibi_api.Services
         // GET TRANSACTIONS
         // =============================================
 
-        /// <summary>
-        /// Fetches recent transactions from Plaid for a funding source.
-        /// </summary>
         public async Task<RequestResponse> GetTransactions(int fundingSourceId, int userId, int days = 30)
         {
             try
             {
+                var (creds, credError) = await GetUserPlaidCredentials(userId);
+                if (credError != null) return credError;
+
                 var (accessToken, error) = await GetDecryptedAccessToken(fundingSourceId, userId);
                 if (error != null) return error;
 
                 var endDate = DateTime.UtcNow;
                 var startDate = endDate.AddDays(-days);
 
-                var result = await _plaidApi.GetTransactions(accessToken, startDate, endDate);
+                var result = await _plaidApi.GetTransactions(creds, accessToken, startDate, endDate);
                 if (!result.IsSuccess)
                     return new RequestResponse(null, 400, result.ErrorMessage ?? "Failed to fetch transactions");
 
@@ -272,17 +421,17 @@ namespace egibi_api.Services
         // GET AUTH (ACH NUMBERS)
         // =============================================
 
-        /// <summary>
-        /// Retrieves ACH account/routing numbers for a funding source.
-        /// </summary>
         public async Task<RequestResponse> GetAuth(int fundingSourceId, int userId)
         {
             try
             {
+                var (creds, credError) = await GetUserPlaidCredentials(userId);
+                if (credError != null) return credError;
+
                 var (accessToken, error) = await GetDecryptedAccessToken(fundingSourceId, userId);
                 if (error != null) return error;
 
-                var result = await _plaidApi.GetAuth(accessToken);
+                var result = await _plaidApi.GetAuth(creds, accessToken);
                 if (!result.IsSuccess)
                     return new RequestResponse(null, 400, result.ErrorMessage ?? "Failed to fetch auth data");
 
@@ -307,17 +456,17 @@ namespace egibi_api.Services
         // GET IDENTITY
         // =============================================
 
-        /// <summary>
-        /// Retrieves identity information for a funding source.
-        /// </summary>
         public async Task<RequestResponse> GetIdentity(int fundingSourceId, int userId)
         {
             try
             {
+                var (creds, credError) = await GetUserPlaidCredentials(userId);
+                if (credError != null) return credError;
+
                 var (accessToken, error) = await GetDecryptedAccessToken(fundingSourceId, userId);
                 if (error != null) return error;
 
-                var result = await _plaidApi.GetIdentity(accessToken);
+                var result = await _plaidApi.GetIdentity(creds, accessToken);
                 if (!result.IsSuccess)
                     return new RequestResponse(null, 400, result.ErrorMessage ?? "Failed to fetch identity data");
 
@@ -345,29 +494,26 @@ namespace egibi_api.Services
         // REMOVE ITEM
         // =============================================
 
-        /// <summary>
-        /// Revokes the Plaid access_token and deactivates the funding source.
-        /// The FundingSource record is kept but marked inactive.
-        /// </summary>
         public async Task<RequestResponse> RemoveItem(int fundingSourceId, int userId)
         {
             try
             {
+                var (creds, credError) = await GetUserPlaidCredentials(userId);
+                if (credError != null) return credError;
+
                 var (accessToken, error) = await GetDecryptedAccessToken(fundingSourceId, userId);
                 if (error != null) return error;
 
-                // Revoke with Plaid
-                var result = await _plaidApi.RemoveItem(accessToken);
+                var result = await _plaidApi.RemoveItem(creds, accessToken);
                 if (!result.IsSuccess)
                     _logger.LogWarning("Plaid item removal returned error (proceeding anyway): {Error}", result.ErrorMessage);
 
-                // Deactivate locally regardless of Plaid response
                 var fs = await _db.FundingSources.FindAsync(fundingSourceId);
                 if (fs != null)
                 {
                     fs.IsActive = false;
                     fs.IsPrimary = false;
-                    fs.EncryptedPlaidAccessToken = null; // Clear the encrypted token
+                    fs.EncryptedPlaidAccessToken = null;
                     fs.LastModifiedAt = DateTime.UtcNow;
                     await _db.SaveChangesAsync();
                 }
@@ -386,10 +532,6 @@ namespace egibi_api.Services
         // PRIVATE HELPERS
         // =============================================
 
-        /// <summary>
-        /// Retrieves and decrypts the Plaid access token for a funding source.
-        /// Returns (accessToken, null) on success, or (null, errorResponse) on failure.
-        /// </summary>
         private async Task<(string accessToken, RequestResponse error)> GetDecryptedAccessToken(int fundingSourceId, int userId)
         {
             var fs = await _db.FundingSources

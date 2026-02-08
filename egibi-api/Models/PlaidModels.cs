@@ -3,6 +3,27 @@ using System.ComponentModel.DataAnnotations;
 namespace egibi_api.Models
 {
     // =============================================
+    // PLAID CONFIG
+    // =============================================
+
+    /// <summary>
+    /// Request to save a user's Plaid developer credentials.
+    /// </summary>
+    public class PlaidConfigRequest
+    {
+        [Required]
+        public string ClientId { get; set; }
+
+        [Required]
+        public string Secret { get; set; }
+
+        /// <summary>
+        /// "sandbox", "development", or "production"
+        /// </summary>
+        public string Environment { get; set; } = "sandbox";
+    }
+
+    // =============================================
     // LINK TOKEN
     // =============================================
 

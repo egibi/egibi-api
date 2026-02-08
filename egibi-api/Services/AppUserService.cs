@@ -196,8 +196,6 @@ namespace egibi_api.Services
             var admin = new AppUser
             {
                 Email = adminEmail,
-                FirstName = "Admin",
-                LastName = "Egibi",
                 Role = "admin",
                 PasswordHash = _encryption.HashPassword(defaultPassword),
                 EncryptedDataKey = _encryption.GenerateUserKey(),
