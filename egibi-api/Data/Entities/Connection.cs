@@ -1,5 +1,4 @@
-﻿#nullable disable
-
+#nullable disable
 namespace egibi_api.Data.Entities
 {
     /// <summary>
@@ -15,6 +14,7 @@ namespace egibi_api.Data.Entities
         // =============================================
         // LEGACY FIELDS (deprecated — use UserCredential)
         // =============================================
+
         public string BaseUrl { get; set; }
         public string ApiKey { get; set; }
         public string ApiSecretKey { get; set; }
@@ -29,13 +29,13 @@ namespace egibi_api.Data.Entities
 
         /// <summary>
         /// Service category for grouping in the UI card picker.
-        /// Values: "crypto_exchange", "stock_broker", "data_provider", "other"
+        /// Values: "crypto_exchange", "stock_broker", "data_provider", "funding_provider", "other"
         /// </summary>
         public string Category { get; set; }
 
         /// <summary>
         /// Icon key used by the frontend to render the service's SVG icon.
-        /// e.g., "binance", "coinbase", "schwab", "alpaca", "kraken"
+        /// e.g., "binance", "coinbase", "schwab", "alpaca", "kraken", "mercury"
         /// </summary>
         public string IconKey { get; set; }
 
@@ -60,9 +60,9 @@ namespace egibi_api.Data.Entities
         /// JSON array of credential field identifiers required by this service.
         /// e.g., ["api_key","api_secret"] or ["api_key","api_secret","passphrase"]
         /// The frontend uses this to dynamically render the credential form.
-        /// 
+        ///
         /// Available field keys:
-        ///   api_key, api_secret, passphrase, username, password, base_url
+        /// api_key, api_secret, passphrase, username, password, base_url
         /// </summary>
         public string RequiredFields { get; set; }
 
@@ -71,5 +71,27 @@ namespace egibi_api.Data.Entities
         /// Lower numbers appear first.
         /// </summary>
         public int SortOrder { get; set; }
+
+        // =============================================
+        // FUNDING / ONBOARDING FIELDS
+        // =============================================
+
+        /// <summary>
+        /// URL where users can sign up for this service.
+        /// e.g., "https://app.mercury.com/signup"
+        /// </summary>
+        public string SignupUrl { get; set; }
+
+        /// <summary>
+        /// URL to the service's API documentation.
+        /// e.g., "https://docs.mercury.com"
+        /// </summary>
+        public string ApiDocsUrl { get; set; }
+
+        /// <summary>
+        /// How this provider connects: "api_key" or "plaid_link".
+        /// Used by the frontend to determine the credential flow.
+        /// </summary>
+        public string LinkMethod { get; set; }
     }
 }

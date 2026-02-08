@@ -1,10 +1,8 @@
 // FILE: egibi-api/Data/DbSetup.cs
-
 using egibi_api.Data.Entities;
 using EgibiGeoDateTimeDataLibrary.Models;
 using Country = egibi_api.Data.Entities.Country;
 using TimeZone = egibi_api.Data.Entities.TimeZone;
-
 
 namespace egibi_api.Data
 {
@@ -29,7 +27,6 @@ namespace egibi_api.Data
                     IsActive = true,
                 }
             };
-
             return connectionTypes;
         }
 
@@ -52,7 +49,8 @@ namespace egibi_api.Data
                     Website = "https://www.binance.us",
                     DefaultBaseUrl = "https://api.binance.us",
                     RequiredFields = "[\"api_key\",\"api_secret\"]",
-                    SortOrder = 1
+                    SortOrder = 1,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -68,7 +66,8 @@ namespace egibi_api.Data
                     Website = "https://www.coinbase.com",
                     DefaultBaseUrl = "https://api.coinbase.com",
                     RequiredFields = "[\"api_key\",\"api_secret\"]",
-                    SortOrder = 2
+                    SortOrder = 2,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -84,7 +83,8 @@ namespace egibi_api.Data
                     Website = "https://pro.coinbase.com",
                     DefaultBaseUrl = "https://api.pro.coinbase.com",
                     RequiredFields = "[\"api_key\",\"api_secret\",\"passphrase\"]",
-                    SortOrder = 3
+                    SortOrder = 3,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -100,7 +100,8 @@ namespace egibi_api.Data
                     Website = "https://www.kraken.com",
                     DefaultBaseUrl = "https://api.kraken.com",
                     RequiredFields = "[\"api_key\",\"api_secret\"]",
-                    SortOrder = 4
+                    SortOrder = 4,
+                    LinkMethod = "api_key"
                 },
 
                 // ===== STOCK BROKERS =====
@@ -118,7 +119,8 @@ namespace egibi_api.Data
                     Website = "https://www.schwab.com",
                     DefaultBaseUrl = "https://api.schwabapi.com",
                     RequiredFields = "[\"api_key\",\"api_secret\"]",
-                    SortOrder = 10
+                    SortOrder = 10,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -134,7 +136,8 @@ namespace egibi_api.Data
                     Website = "https://alpaca.markets",
                     DefaultBaseUrl = "https://paper-api.alpaca.markets",
                     RequiredFields = "[\"api_key\",\"api_secret\"]",
-                    SortOrder = 11
+                    SortOrder = 11,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -150,7 +153,8 @@ namespace egibi_api.Data
                     Website = "https://www.interactivebrokers.com",
                     DefaultBaseUrl = "https://localhost:5000/v1/api",
                     RequiredFields = "[\"username\",\"password\"]",
-                    SortOrder = 12
+                    SortOrder = 12,
+                    LinkMethod = "api_key"
                 },
 
                 // ===== DATA PROVIDERS =====
@@ -168,7 +172,8 @@ namespace egibi_api.Data
                     Website = "https://www.alphavantage.co",
                     DefaultBaseUrl = "https://www.alphavantage.co/query",
                     RequiredFields = "[\"api_key\"]",
-                    SortOrder = 20
+                    SortOrder = 20,
+                    LinkMethod = "api_key"
                 },
                 new Connection
                 {
@@ -184,10 +189,50 @@ namespace egibi_api.Data
                     Website = "https://polygon.io",
                     DefaultBaseUrl = "https://api.polygon.io",
                     RequiredFields = "[\"api_key\"]",
-                    SortOrder = 21
+                    SortOrder = 21,
+                    LinkMethod = "api_key"
+                },
+
+                // ===== FUNDING PROVIDERS =====
+                new Connection
+                {
+                    Id = 10,
+                    Name = "Mercury",
+                    Description = "Business banking with powerful API access for programmatic fund management",
+                    ConnectionTypeId = 2,
+                    IsDataSource = false,
+                    IsActive = true,
+                    Category = "funding_provider",
+                    IconKey = "mercury",
+                    Color = "#6366F1",
+                    Website = "https://mercury.com",
+                    DefaultBaseUrl = "https://api.mercury.com/api/v1",
+                    RequiredFields = "[\"api_key\"]",
+                    SortOrder = 30,
+                    SignupUrl = "https://app.mercury.com/signup",
+                    ApiDocsUrl = "https://docs.mercury.com",
+                    LinkMethod = "api_key"
+                },
+                new Connection
+                {
+                    Id = 11,
+                    Name = "Plaid",
+                    Description = "Connect any US bank account securely via Plaid Link",
+                    ConnectionTypeId = 2,
+                    IsDataSource = false,
+                    IsActive = true,
+                    Category = "funding_provider",
+                    IconKey = "plaid",
+                    Color = "#00D09C",
+                    Website = "https://plaid.com",
+                    DefaultBaseUrl = "https://production.plaid.com",
+                    RequiredFields = "[]",
+                    SortOrder = 31,
+                    SignupUrl = "",
+                    ApiDocsUrl = "https://plaid.com/docs",
+                    LinkMethod = "plaid_link"
                 }
             };
-
             return connections;
         }
 
@@ -224,7 +269,6 @@ namespace egibi_api.Data
                     IsActive = true,
                 }
             };
-
             return dataProviderTypes;
         }
 
@@ -261,7 +305,6 @@ namespace egibi_api.Data
                     IsActive = true,
                 }
             };
-
             return dataFrequencyTypes;
         }
 
@@ -277,7 +320,6 @@ namespace egibi_api.Data
                     IsActive = true,
                 }
             };
-
             return dataFormatTypes;
         }
 
@@ -321,7 +363,6 @@ namespace egibi_api.Data
                     IsActive = true,
                 }
             };
-
             return backtestStatuses;
         }
 
@@ -348,13 +389,12 @@ namespace egibi_api.Data
             {
                 new CountryAdministrativeDivisionType()
                 {
-                  Id = 1,
-                  Name = "State",
-                  CreatedAt = DateTime.Now.ToUniversalTime(),
-                  IsActive = true
+                    Id = 1,
+                    Name = "State",
+                    CreatedAt = DateTime.Now.ToUniversalTime(),
+                    IsActive = true
                 }
             };
-
             return countryAdministrativeDivisionTypes;
         }
 
@@ -372,12 +412,11 @@ namespace egibi_api.Data
                     {
                         Id = id,
                         CountryCode = cd.CountryCode,
-                        CountryName = cd.CountryName, 
+                        CountryName = cd.CountryName,
                         IsActive = true,
                     };
 
                     countryEntities.Add(countryRecord);
-
                     id++;
                 });
             }
@@ -393,7 +432,6 @@ namespace egibi_api.Data
             if (timeZoneData != null && timeZoneData.Count > 0)
             {
                 int id = 1;
-
                 //TODO: Output new record creation during seeding process
                 timeZoneData.ForEach(tzd =>
                 {
@@ -409,13 +447,11 @@ namespace egibi_api.Data
                     };
 
                     id++;
-
                     timeZoneEntities.Add(timeZoneRecord);
-                });                
+                });
             }
 
             return timeZoneEntities;
         }
-
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using egibi_api.Data;
@@ -11,9 +12,11 @@ using egibi_api.Data;
 namespace egibi_api.Migrations
 {
     [DbContext(typeof(EgibiDbContext))]
-    partial class EgibiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260207103127_InitialBaseline")]
+    partial class InitialBaseline
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -745,9 +748,6 @@ namespace egibi_api.Migrations
                     b.Property<DateTime?>("LastModifiedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("LinkMethod")
-                        .HasColumnType("text");
-
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
@@ -782,7 +782,6 @@ namespace egibi_api.Migrations
                             IconKey = "binance",
                             IsActive = true,
                             IsDataSource = true,
-                            LinkMethod = "api_key",
                             Name = "Binance US",
                             RequiredFields = "[\"api_key\",\"api_secret\"]",
                             SortOrder = 1,
@@ -800,7 +799,6 @@ namespace egibi_api.Migrations
                             IconKey = "coinbase",
                             IsActive = true,
                             IsDataSource = true,
-                            LinkMethod = "api_key",
                             Name = "Coinbase",
                             RequiredFields = "[\"api_key\",\"api_secret\"]",
                             SortOrder = 2,
@@ -818,7 +816,6 @@ namespace egibi_api.Migrations
                             IconKey = "coinbase",
                             IsActive = true,
                             IsDataSource = true,
-                            LinkMethod = "api_key",
                             Name = "Coinbase Pro",
                             RequiredFields = "[\"api_key\",\"api_secret\",\"passphrase\"]",
                             SortOrder = 3,
@@ -836,7 +833,6 @@ namespace egibi_api.Migrations
                             IconKey = "kraken",
                             IsActive = true,
                             IsDataSource = true,
-                            LinkMethod = "api_key",
                             Name = "Kraken",
                             RequiredFields = "[\"api_key\",\"api_secret\"]",
                             SortOrder = 4,
@@ -854,7 +850,6 @@ namespace egibi_api.Migrations
                             IconKey = "schwab",
                             IsActive = true,
                             IsDataSource = false,
-                            LinkMethod = "api_key",
                             Name = "Charles Schwab",
                             RequiredFields = "[\"api_key\",\"api_secret\"]",
                             SortOrder = 10,
@@ -872,7 +867,6 @@ namespace egibi_api.Migrations
                             IconKey = "alpaca",
                             IsActive = true,
                             IsDataSource = true,
-                            LinkMethod = "api_key",
                             Name = "Alpaca",
                             RequiredFields = "[\"api_key\",\"api_secret\"]",
                             SortOrder = 11,
@@ -890,7 +884,6 @@ namespace egibi_api.Migrations
                             IconKey = "ibkr",
                             IsActive = true,
                             IsDataSource = true,
-                            LinkMethod = "api_key",
                             Name = "Interactive Brokers",
                             RequiredFields = "[\"username\",\"password\"]",
                             SortOrder = 12,
@@ -908,7 +901,6 @@ namespace egibi_api.Migrations
                             IconKey = "alphavantage",
                             IsActive = true,
                             IsDataSource = true,
-                            LinkMethod = "api_key",
                             Name = "Alpha Vantage",
                             RequiredFields = "[\"api_key\"]",
                             SortOrder = 20,
@@ -926,7 +918,6 @@ namespace egibi_api.Migrations
                             IconKey = "polygon",
                             IsActive = true,
                             IsDataSource = true,
-                            LinkMethod = "api_key",
                             Name = "Polygon.io",
                             RequiredFields = "[\"api_key\"]",
                             SortOrder = 21,
@@ -944,29 +935,10 @@ namespace egibi_api.Migrations
                             IconKey = "mercury",
                             IsActive = true,
                             IsDataSource = false,
-                            LinkMethod = "api_key",
                             Name = "Mercury",
                             RequiredFields = "[\"api_key\"]",
                             SortOrder = 30,
                             Website = "https://mercury.com"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            Category = "funding_provider",
-                            Color = "#00D09C",
-                            ConnectionTypeId = 2,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            DefaultBaseUrl = "https://development.plaid.com",
-                            Description = "Link any US bank account for balance tracking, transactions, and ACH transfers",
-                            IconKey = "plaid",
-                            IsActive = true,
-                            IsDataSource = false,
-                            LinkMethod = "plaid_link",
-                            Name = "Plaid",
-                            RequiredFields = "[]",
-                            SortOrder = 31,
-                            Website = "https://plaid.com"
                         });
                 });
 
@@ -1564,149 +1536,6 @@ namespace egibi_api.Migrations
                     b.ToTable("MarketType", (string)null);
                 });
 
-            modelBuilder.Entity("egibi_api.Data.Entities.PlaidAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountSubtype")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("AccountType")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<decimal?>("AvailableBalance")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("BalanceLastUpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal?>("CurrentBalance")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsSelectedFunding")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("IsoCurrencyCode")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Mask")
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
-                    b.Property<string>("OfficialName")
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<string>("PlaidAccountId")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("PlaidItemId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlaidItemId", "PlaidAccountId")
-                        .IsUnique();
-
-                    b.ToTable("PlaidAccount", (string)null);
-                });
-
-            modelBuilder.Entity("egibi_api.Data.Entities.PlaidItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AccountId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("AppUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("ConsentExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<string>("EnabledProducts")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("EncryptedAccessToken")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("InstitutionId")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("InstitutionName")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("LastModifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime?>("LastSyncedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PlaidItemId")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("AppUserId", "PlaidItemId")
-                        .IsUnique();
-
-                    b.ToTable("PlaidItem", (string)null);
-                });
-
             modelBuilder.Entity("egibi_api.Data.Entities.Strategy", b =>
                 {
                     b.Property<int>("Id")
@@ -2029,35 +1858,6 @@ namespace egibi_api.Migrations
                     b.Navigation("ExchangeFeeStructure");
                 });
 
-            modelBuilder.Entity("egibi_api.Data.Entities.PlaidAccount", b =>
-                {
-                    b.HasOne("egibi_api.Data.Entities.PlaidItem", "PlaidItem")
-                        .WithMany("PlaidAccounts")
-                        .HasForeignKey("PlaidItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PlaidItem");
-                });
-
-            modelBuilder.Entity("egibi_api.Data.Entities.PlaidItem", b =>
-                {
-                    b.HasOne("egibi_api.Data.Entities.Account", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("egibi_api.Data.Entities.AppUser", "AppUser")
-                        .WithMany()
-                        .HasForeignKey("AppUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Account");
-
-                    b.Navigation("AppUser");
-                });
-
             modelBuilder.Entity("egibi_api.Data.Entities.Strategy", b =>
                 {
                     b.HasOne("egibi_api.Data.Entities.Account", "Account")
@@ -2116,11 +1916,6 @@ namespace egibi_api.Migrations
             modelBuilder.Entity("egibi_api.Data.Entities.ExchangeFeeStructure", b =>
                 {
                     b.Navigation("ExchangeFeeStructureTiers");
-                });
-
-            modelBuilder.Entity("egibi_api.Data.Entities.PlaidItem", b =>
-                {
-                    b.Navigation("PlaidAccounts");
                 });
 
             modelBuilder.Entity("egibi_api.Data.Entities.Strategy", b =>

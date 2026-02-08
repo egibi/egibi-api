@@ -1,5 +1,4 @@
 // FILE: egibi-api/Data/EgibiDbContext.cs
-
 using egibi_api.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using TimeZone = egibi_api.Data.Entities.TimeZone;
@@ -41,6 +40,26 @@ namespace egibi_api.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            // FundingSource — one primary per user, linked to Connection
+            modelBuilder.Entity<FundingSource>(entity =>
+            {
+                entity.HasOne(f => f.AppUser)
+                    .WithMany()
+                    .HasForeignKey(f => f.AppUserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(f => f.Connection)
+                    .WithMany()
+                    .HasForeignKey(f => f.ConnectionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Unique filtered index: only one primary funding source per user
+                entity.HasIndex(f => f.AppUserId)
+                    .HasFilter("\"IsPrimary\" = true")
+                    .IsUnique()
+                    .HasDatabaseName("IX_FundingSource_AppUserId_PrimaryUnique");
+            });
+
             modelBuilder.Entity<Account>()
                 .HasOne(ad => ad.AccountDetails)
                 .WithOne(a => a.Account)
@@ -66,7 +85,6 @@ namespace egibi_api.Data
             //    .WithOne(a => a.Account)
             //    .HasForeignKey<AccountStatusDetails>(a => a.AccountId);
 
-
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<ConnectionType>().HasData(DbSetup.GetConnectionTypes());
@@ -82,7 +100,7 @@ namespace egibi_api.Data
         public DbSet<AppUser> AppUsers { get; set; }
         public DbSet<AppConfiguration> AppConfigurations { get; set; }
         public DbSet<UserCredential> UserCredentials { get; set; }
-
+        public DbSet<FundingSource> FundingSources { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<AccountType> AccountTypes { get; set; }
         public DbSet<AccountUser> AccountUsers { get; set; }
