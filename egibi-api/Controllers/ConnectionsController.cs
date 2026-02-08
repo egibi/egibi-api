@@ -1,10 +1,12 @@
 ﻿using egibi_api.Data.Entities;
 using egibi_api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using EgibiCoreLibrary.Models;
 
 namespace egibi_api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class ConnectionsController : ControllerBase

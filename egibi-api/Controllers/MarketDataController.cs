@@ -2,10 +2,12 @@
 using egibi_api.MarketData.Models;
 using egibi_api.MarketData.Services;
 using EgibiCoreLibrary.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace egibi_api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class MarketDataController : ControllerBase
@@ -21,11 +23,6 @@ namespace egibi_api.Controllers
         // DATA ACCESS — Cache-First
         // ============================================
 
-        /// <summary>
-        /// Get candles for a symbol/source/interval/date range.
-        /// Automatically fetches from the exchange if gaps exist
-        /// and the source supports on-demand fetching.
-        /// </summary>
         [HttpPost("get-candles")]
         public async Task<RequestResponse> GetCandles([FromBody] MarketDataRequest request)
         {
@@ -53,9 +50,6 @@ namespace egibi_api.Controllers
         // DISCOVERY — What's Available?
         // ============================================
 
-        /// <summary>
-        /// Get all symbols that have stored data.
-        /// </summary>
         [HttpGet("get-symbols")]
         public async Task<RequestResponse> GetSymbols()
         {
@@ -70,10 +64,6 @@ namespace egibi_api.Controllers
             }
         }
 
-        /// <summary>
-        /// Get all available (source, interval) combinations for a symbol,
-        /// with date ranges and candle counts.
-        /// </summary>
         [HttpGet("get-source-summaries")]
         public async Task<RequestResponse> GetSourceSummaries([FromQuery] string symbol)
         {
@@ -91,10 +81,6 @@ namespace egibi_api.Controllers
             }
         }
 
-        /// <summary>
-        /// Check coverage for a specific (symbol, source, interval).
-        /// Returns earliest/latest timestamps and candle count.
-        /// </summary>
         [HttpGet("get-coverage")]
         public async Task<RequestResponse> GetCoverage(
             [FromQuery] string symbol,
@@ -112,10 +98,6 @@ namespace egibi_api.Controllers
             }
         }
 
-        /// <summary>
-        /// List all registered data fetchers (exchanges/vendors).
-        /// Shows which sources can fetch on demand vs. import-only.
-        /// </summary>
         [HttpGet("get-fetchers")]
         public RequestResponse GetFetchers()
         {
@@ -134,10 +116,6 @@ namespace egibi_api.Controllers
         // IMPORT — Manual Data Ingestion
         // ============================================
 
-        /// <summary>
-        /// Import candles directly (e.g., from a parsed CSV).
-        /// DEDUP on the QuestDB table prevents duplicates.
-        /// </summary>
         [HttpPost("import-candles")]
         public async Task<RequestResponse> ImportCandles([FromBody] List<Candle> candles)
         {

@@ -1,10 +1,12 @@
 ﻿using egibi_api.Services;
 using EgibiCoreLibrary.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Exchange = egibi_api.Data.Entities.Exchange;
 
 namespace egibi_api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class ExchangesController : ControllerBase

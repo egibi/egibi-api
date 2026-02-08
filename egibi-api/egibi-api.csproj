@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>egibi_api</RootNamespace>
+    <UserSecretsId>1fb4ffe8-ea6e-4930-af5e-543a0c62144f</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

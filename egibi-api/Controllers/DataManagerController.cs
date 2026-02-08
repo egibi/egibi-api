@@ -5,11 +5,13 @@ using egibi_api.Data.Entities;
 using egibi_api.Services;
 using EgibiCoreLibrary.Models;
 using EgibiCoreLibrary.Models.QuestDbModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 
 namespace egibi_api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class DataManagerController : ControllerBase
@@ -69,14 +71,13 @@ namespace egibi_api.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                // return bad request
+                return new RequestResponse(null, 400, "No file provided.");
             }
 
             using var stream = file.OpenReadStream();
             using var reader = new StreamReader(stream);
             using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
             {
-                // Optional settings
                 HasHeaderRecord = true,
                 TrimOptions = TrimOptions.Trim,
                 IgnoreBlankLines = true

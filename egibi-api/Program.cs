@@ -20,12 +20,11 @@ namespace egibi_api
         public static async Task Main(string[] args)
         {
             var CorsPolicyDev = "_corsPolicyDev";
+            var CorsPolicyProd = "_corsPolicyProd";
             var builder = WebApplication.CreateBuilder(args);
             string env = builder.Environment.EnvironmentName;
             string dbConnectionString = string.Empty;
             string questDbConnectionString = string.Empty;
-
-            builder.Services.Configure<ConfigOptions>(builder.Configuration.GetSection("ConfigOptions"));
 
             // QuestDB options binding
             builder.Services.Configure<QuestDbOptions>(
@@ -45,12 +44,33 @@ namespace egibi_api
 
             if (builder.Environment.IsProduction())
             {
-                // TODO: Setup production connection strings when ready
                 dbConnectionString = builder.Configuration.GetConnectionString("prod_connectionstring");
                 questDbConnectionString = builder.Configuration.GetConnectionString("EgibiQuestDb");
 
                 builder.Services.AddDbContextPool<EgibiDbContext>(options =>
-                    options.UseNpgsql(builder.Configuration.GetConnectionString(dbConnectionString)));
+                {
+                    // FIX #1: Pass the connection string value directly, not as a key lookup
+                    options.UseNpgsql(dbConnectionString);
+
+                    // FIX #1: Register OpenIddict entity sets (was missing in production block)
+                    options.UseOpenIddict();
+                });
+
+                // FIX #11: Add production CORS policy
+                var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                    ?? new[] { "https://app.egibi.io" };
+
+                builder.Services.AddCors(options =>
+                {
+                    options.AddPolicy(name: CorsPolicyProd,
+                        policy =>
+                        {
+                            policy.WithOrigins(allowedOrigins)
+                                .AllowAnyHeader()
+                                .AllowAnyMethod()
+                                .AllowCredentials();
+                        });
+                });
             }
 
             if (builder.Environment.IsDevelopment())
@@ -101,6 +121,10 @@ namespace egibi_api
             builder.Services.AddScoped<GeoDateTimeDataService>();
             builder.Services.AddScoped<StorageService>();
             builder.Services.AddHttpClient();
+
+            // FIX #13: Register previously missing services
+            builder.Services.AddScoped<ExchangeAccountsService>();
+            builder.Services.AddScoped<ExchangesService>();
 
             // --- Security & Auth ---
             var masterKey = builder.Configuration["Encryption:MasterKey"];
@@ -190,7 +214,9 @@ namespace egibi_api
                     // For API calls, return 401. For browser navigations (authorize endpoint), redirect to SPA login.
                     if (context.Request.Path.StartsWithSegments("/connect"))
                     {
-                        context.Response.Redirect("http://localhost:4200/auth/login");
+                        // FIX #11: Use configuration for redirect URI instead of hardcoded localhost
+                        var loginUrl = builder.Configuration["Oidc:LoginRedirectUrl"] ?? "http://localhost:4200/auth/login";
+                        context.Response.Redirect(loginUrl);
                     }
                     else
                     {
@@ -217,10 +243,10 @@ namespace egibi_api
             builder.Services.AddSignalR();
 
 
-            // Allow large form limits. Will need to handle differently in future if hosted non-locally
+            // FIX #16: Set a reasonable upload limit instead of long.MaxValue (DoS vector)
             builder.Services.Configure<FormOptions>(options =>
             {
-                options.MultipartBodyLengthLimit = long.MaxValue;
+                options.MultipartBodyLengthLimit = 104_857_600; // 100 MB
             });
 
 
@@ -293,7 +319,7 @@ namespace egibi_api
                 await userService.SeedAdminAsync();
 
                 // Seed OIDC client applications
-                await SeedOidcClientsAsync(scope.ServiceProvider);
+                await SeedOidcClientsAsync(scope.ServiceProvider, builder.Configuration);
             }
 
             // Configure the HTTP request pipeline.
@@ -303,9 +329,14 @@ namespace egibi_api
                 app.UseSwaggerUI();
             }
 
-            if (builder.Environment.IsDevelopment())
+            // FIX #11: Apply appropriate CORS policy per environment
+            if (app.Environment.IsDevelopment())
             {
                 app.UseCors(CorsPolicyDev);
+            }
+            else
+            {
+                app.UseCors(CorsPolicyProd);
             }
 
             // SignalR 
@@ -324,11 +355,19 @@ namespace egibi_api
 
         /// <summary>
         /// Seeds the OpenIddict application entries (OIDC clients).
+        /// FIX #11: Redirect URIs are now configurable via appsettings.
         /// </summary>
-        private static async Task SeedOidcClientsAsync(IServiceProvider services)
+        private static async Task SeedOidcClientsAsync(IServiceProvider services, IConfiguration configuration)
         {
             var manager = services.GetRequiredService<IOpenIddictApplicationManager>();
             var logger = services.GetRequiredService<ILogger<Program>>();
+
+            // Read redirect URIs from configuration, with localhost defaults for development
+            var redirectUris = configuration.GetSection("Oidc:RedirectUris").Get<string[]>()
+                ?? new[] { "http://localhost:4200/auth/callback", "https://localhost:4200/auth/callback" };
+
+            var postLogoutUris = configuration.GetSection("Oidc:PostLogoutRedirectUris").Get<string[]>()
+                ?? new[] { "http://localhost:4200", "https://localhost:4200" };
 
             // --- egibi-ui (Angular SPA) ---
             var descriptor = new OpenIddictApplicationDescriptor
@@ -336,18 +375,6 @@ namespace egibi_api
                 ClientId = "egibi-ui",
                 DisplayName = "Egibi Trading Platform",
                 ClientType = OpenIddictConstants.ClientTypes.Public, // SPA = public client (no secret)
-
-                // Redirect URIs for the Angular app
-                RedirectUris =
-                {
-                    new Uri("http://localhost:4200/auth/callback"),
-                    new Uri("https://localhost:4200/auth/callback")
-                },
-                PostLogoutRedirectUris =
-                {
-                    new Uri("http://localhost:4200"),
-                    new Uri("https://localhost:4200")
-                },
 
                 Permissions =
                 {
@@ -377,6 +404,12 @@ namespace egibi_api
                     OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange
                 }
             };
+
+            // Add configured redirect URIs
+            foreach (var uri in redirectUris)
+                descriptor.RedirectUris.Add(new Uri(uri));
+            foreach (var uri in postLogoutUris)
+                descriptor.PostLogoutRedirectUris.Add(new Uri(uri));
 
             var existing = await manager.FindByClientIdAsync("egibi-ui");
             if (existing is null)

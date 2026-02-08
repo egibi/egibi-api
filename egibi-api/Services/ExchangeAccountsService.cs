@@ -55,9 +55,16 @@ namespace egibi_api.Services
         {
             try
             {
-                _db.Remove(_db.ExchangeAccounts
+                // FIX #5: Was using FirstOrDefaultAsync() which returns Task, not entity.
+                // Changed to synchronous FirstOrDefault() so _db.Remove() gets the actual entity.
+                var entity = _db.ExchangeAccounts
                     .Where(w => w.Id == id)
-                    .FirstOrDefaultAsync());
+                    .FirstOrDefault();
+
+                if (entity == null)
+                    return new RequestResponse(id, 404, "Exchange account not found");
+
+                _db.Remove(entity);
                 await _db.SaveChangesAsync();
 
                 return new RequestResponse(id, 200, "Deleted");
@@ -86,15 +93,15 @@ namespace egibi_api.Services
 
         private async Task<RequestResponse> CreateNewExchangeAccount(ExchangeAccount exchangeAccount)
         {
+            // FIX #3: Removed plaintext Username/Password copy.
+            // Credentials should be stored via UserCredential with per-user encryption.
             ExchangeAccount newExchangeAccount = new ExchangeAccount
             {
                 Name = exchangeAccount.Name,
                 Description = exchangeAccount.Description,
                 Notes = exchangeAccount.Notes,
-                CreatedAt = DateTime.Now.ToUniversalTime(),
+                CreatedAt = DateTime.UtcNow, // FIX #14: Use DateTime.UtcNow directly
                 IsActive = true,
-                Username = exchangeAccount.Username,
-                Password = exchangeAccount.Password,
             };
 
             try
@@ -102,7 +109,7 @@ namespace egibi_api.Services
                 await _db.AddAsync(newExchangeAccount);
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(exchangeAccount, 200, "OK");
+                return new RequestResponse(newExchangeAccount, 200, "OK");
             }
             catch (Exception ex)
             {
@@ -117,21 +124,22 @@ namespace egibi_api.Services
                     .Where(w => w.Id == exchangeAccount.Id)
                     .FirstOrDefaultAsync();
 
-                existingExchangeAccount.Id = exchangeAccount.Id;
+                if (existingExchangeAccount == null)
+                    return new RequestResponse(null, 404, "Exchange account not found");
+
                 existingExchangeAccount.Name = exchangeAccount.Name;
                 existingExchangeAccount.Description = exchangeAccount.Description;
                 existingExchangeAccount.Notes = exchangeAccount.Notes;
                 existingExchangeAccount.IsActive = exchangeAccount.IsActive;
-                existingExchangeAccount.Username = exchangeAccount.Username;
-                existingExchangeAccount.Password = exchangeAccount.Password;
+                // FIX #3: Removed plaintext Username/Password copy
                 existingExchangeAccount.AssetBalance = exchangeAccount.AssetBalance;
                 existingExchangeAccount.CurrentSpotVolume_30Day = exchangeAccount.CurrentSpotVolume_30Day;
-                existingExchangeAccount.LastModifiedAt = DateTime.Now.ToUniversalTime();
+                existingExchangeAccount.LastModifiedAt = DateTime.UtcNow; // FIX #14
 
                 _db.Update(existingExchangeAccount);
                 await _db.SaveChangesAsync();
 
-                return new RequestResponse(exchangeAccount, 200, "OK");
+                return new RequestResponse(existingExchangeAccount, 200, "OK");
             }
             catch (Exception ex)
             {

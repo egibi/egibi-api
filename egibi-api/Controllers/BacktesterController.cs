@@ -2,10 +2,12 @@
 using egibi_api.Data.Entities;
 using egibi_api.Services;
 using EgibiCoreLibrary.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace egibi_api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class BacktesterController : ControllerBase

@@ -1,19 +1,19 @@
 ﻿#nullable disable
 using egibi_api.Services;
 using EgibiCoreLibrary.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace egibi_api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
-
-    public class ExchangeAccounts : ControllerBase
+    public class ExchangeAccountsController : ControllerBase
     {
+        private readonly ExchangeAccountsService _exchangeAccountsService;
 
-        public readonly ExchangeAccountsService _exchangeAccountsService;
-
-        public ExchangeAccounts(ExchangeAccountsService exchangeAccountsService)
+        public ExchangeAccountsController(ExchangeAccountsService exchangeAccountsService)
         {
             _exchangeAccountsService = exchangeAccountsService;
         }
@@ -25,7 +25,7 @@ namespace egibi_api.Controllers
         }
 
         [HttpGet("get-exchange-account")]
-        public async Task<RequestResponse> GetExcahngeAccount(int id)
+        public async Task<RequestResponse> GetExchangeAccount(int id)
         {
             return await _exchangeAccountsService.GetExchangeAccount(id);
         }

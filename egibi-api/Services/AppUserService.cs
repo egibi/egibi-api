@@ -12,14 +12,18 @@ namespace egibi_api.Services
         private readonly EgibiDbContext _db;
         private readonly IEncryptionService _encryption;
         private readonly ILogger<AppUserService> _logger;
+        private readonly IConfiguration _configuration;
+
         public AppUserService(
             EgibiDbContext db,
             IEncryptionService encryption,
-            ILogger<AppUserService> logger)
+            ILogger<AppUserService> logger,
+            IConfiguration configuration)
         {
             _db = db;
             _encryption = encryption;
             _logger = logger;
+            _configuration = configuration;
         }
 
         // =============================================
@@ -165,6 +169,7 @@ namespace egibi_api.Services
 
         /// <summary>
         /// Ensures the default admin account exists. Called on startup.
+        /// FIX #2: Admin password is now read from configuration instead of hardcoded.
         /// </summary>
         public async Task SeedAdminAsync()
         {
@@ -177,7 +182,16 @@ namespace egibi_api.Services
                 return;
             }
 
-            const string defaultPassword = "Admin123!";
+            // Read from configuration — falls back to a generated password if not set
+            var defaultPassword = _configuration["AdminSeed:DefaultPassword"];
+            if (string.IsNullOrWhiteSpace(defaultPassword) || defaultPassword == "CHANGE_ME_ON_FIRST_LOGIN")
+            {
+                // Generate a random password if not configured
+                defaultPassword = Convert.ToBase64String(RandomNumberGenerator.GetBytes(24));
+                _logger.LogWarning(
+                    "No AdminSeed:DefaultPassword configured. Generated random admin password: {Password} — save this and change after first login.",
+                    defaultPassword);
+            }
 
             var admin = new AppUser
             {
@@ -195,7 +209,7 @@ namespace egibi_api.Services
             await _db.AppUsers.AddAsync(admin);
             await _db.SaveChangesAsync();
 
-            _logger.LogInformation("Admin account created: {Email} (default password — change after first login).", adminEmail);
+            _logger.LogInformation("Admin account created: {Email} (change password after first login).", adminEmail);
         }
 
         // =============================================

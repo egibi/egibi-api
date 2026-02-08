@@ -2,7 +2,6 @@
 using egibi_api.Data;
 using EgibiCoreLibrary.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Connection = egibi_api.Data.Entities.Connection;
 
 namespace egibi_api.Services
@@ -10,12 +9,11 @@ namespace egibi_api.Services
     public class ConnectionsService
     {
         private readonly EgibiDbContext _db;
-        private readonly ConfigOptions _configOptions;
 
-        public ConnectionsService(EgibiDbContext db, IOptions<ConfigOptions> configOptions)
+        // FIX #7: Removed unused ConfigOptions injection
+        public ConnectionsService(EgibiDbContext db)
         {
             _db = db;
-            _configOptions = configOptions.Value;
         }
 
         public async Task<RequestResponse> GetConnections()
@@ -122,8 +120,7 @@ namespace egibi_api.Services
                 Name = connection.Name,
                 Description = connection.Description,
                 BaseUrl = connection.BaseUrl,
-                ApiKey = connection.ApiKey,
-                ApiSecretKey = connection.ApiSecretKey,
+                // FIX #10: Stop copying legacy ApiKey/ApiSecretKey — use UserCredential for encrypted storage
                 IsDataSource = connection.IsDataSource,
                 ConnectionTypeId = connection.ConnectionTypeId ?? defaultTypeId,
                 IsActive = true,
@@ -163,12 +160,10 @@ namespace egibi_api.Services
                 if (existing == null)
                     return new RequestResponse(null, 404, "Connection not found");
 
-                // Legacy fields
                 existing.Name = connection.Name;
                 existing.Description = connection.Description;
                 existing.BaseUrl = connection.BaseUrl;
-                existing.ApiKey = connection.ApiKey;
-                existing.ApiSecretKey = connection.ApiSecretKey;
+                // FIX #10: Stop copying legacy ApiKey/ApiSecretKey
                 existing.IsDataSource = connection.IsDataSource;
                 existing.LastModifiedAt = DateTime.UtcNow;
 

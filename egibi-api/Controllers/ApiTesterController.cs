@@ -1,6 +1,7 @@
 ﻿#nullable disable
 using egibi_api.Data.Entities;
 using egibi_api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.DataProtection;
 using System.Security.Cryptography;
@@ -9,9 +10,10 @@ using EgibiCoreLibrary.Models;
 
 namespace egibi_api.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
-    public class ApiTesterController
+    public class ApiTesterController : ControllerBase
     {
         private readonly ApiTesterService _apiTesterService;
 
@@ -31,8 +33,5 @@ namespace egibi_api.Controllers
         {
             return await _apiTesterService.GetServerTime();
         }
-
-
-
     }
 }

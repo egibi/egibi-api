@@ -1,7 +1,6 @@
 ﻿#nullable disable
 using egibi_api.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using EgibiQuestDB;
 using EgibiCoreLibrary.Models;
 using egibi_api.Data.Entities;
@@ -12,12 +11,11 @@ namespace egibi_api.Services
     public class DataManagerService
     {
         private readonly EgibiDbContext _db;
-        private readonly ConfigOptions _configOptions;
 
-        public DataManagerService(EgibiDbContext db, IOptions<ConfigOptions> configOptions)
+        // FIX #7: Removed unused ConfigOptions injection
+        public DataManagerService(EgibiDbContext db)
         {
             _db = db;
-            _configOptions = configOptions.Value;
         }
 
         public async Task<RequestResponse> GetDataProviders()
@@ -134,7 +132,6 @@ namespace egibi_api.Services
         }
         public async Task<RequestResponse> SaveFile(IFormFile file)
         {
-
             var ingester = new Ingester("connectionString");
             ingester.LoadCsv(file);
 
@@ -142,9 +139,6 @@ namespace egibi_api.Services
         }
         public async Task<RequestResponse> CreateQuestDbTable(List<Ohlcv> data)
         {
-            //var sql = $"CREATE TABLE IF NOT EXISTS {tableName}" +
-            //    $"id LONG,",
-
             return null;
         }
 
@@ -161,21 +155,9 @@ namespace egibi_api.Services
                 IsActive = true,
                 Start = dataProvider.Start?.ToUniversalTime(),
                 End = dataProvider.End?.ToUniversalTime(),
-                CreatedAt = DateTime.Now.ToUniversalTime(),
+                CreatedAt = DateTime.UtcNow, // FIX #14: Use DateTime.UtcNow directly
                 LastModifiedAt = null
             };
-
-            //DataProvider newDataProvider = new DataProvider();
-
-            //newDataProvider.Name = dataProvider.Name;
-            //newDataProvider.Description = dataProvider.Description;
-            //newDataProvider.Notes = dataProvider.Notes;
-            //newDataProvider.DataProviderTypeId = dataProvider.DataProviderTypeId;
-            //newDataProvider.DataFormatTypeId = dataProvider.DataFormatTypeId;
-            //newDataProvider.DataFrequencyTypeId = dataProvider.DataFrequencyTypeId;
-            //newDataProvider.IsActive = dataProvider.IsActive;
-            //newDataProvider.Start = dataProvider.Start?.ToUniversalTime();
-            //newDataProvider.End = dataProvider.End?.ToUniversalTime();
 
             try
             {
@@ -206,7 +188,7 @@ namespace egibi_api.Services
                 existingDataProvider.IsActive = dataProvider.IsActive;
                 existingDataProvider.Start = dataProvider.Start?.ToUniversalTime();
                 existingDataProvider.End = dataProvider.End?.ToUniversalTime();
-                existingDataProvider.LastModifiedAt = DateTime.Now.ToUniversalTime();
+                existingDataProvider.LastModifiedAt = DateTime.UtcNow; // FIX #14
 
                 _db.Update(existingDataProvider);
                 await _db.SaveChangesAsync();
@@ -215,9 +197,6 @@ namespace egibi_api.Services
             }
             catch (Exception ex)
             {
-                var message = ex.Message;
-                var inner = ex.InnerException?.Message;
-
                 return new RequestResponse(null, 500, "There was an error", new ResponseError(ex));
             }
 
