@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/egibi/egibi-api/main/egibi-logo.png" alt="Egibi" width="300" />
+  <img src="./egibi-logo.png" alt="Egibi" width="300" />
 </p>
 
 <h3 align="center">Multi-Asset Algorithmic Trading Platform — API</h3>
