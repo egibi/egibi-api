@@ -15,6 +15,7 @@ namespace egibi_api.Controllers
             _configuration = configuration;
         }
 
+        [AllowAnonymous]
         [HttpGet("get-environment")]
         public IActionResult GetEnvironment()
         {
