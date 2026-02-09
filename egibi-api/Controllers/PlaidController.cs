@@ -1,9 +1,12 @@
+#nullable disable
 using System.Security.Claims;
+using egibi_api.Data;
 using egibi_api.Models;
 using egibi_api.Services;
 using EgibiCoreLibrary.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace egibi_api.Controllers
@@ -14,16 +17,45 @@ namespace egibi_api.Controllers
     public class PlaidController : ControllerBase
     {
         private readonly PlaidService _plaidService;
+        private readonly EgibiDbContext _db;
 
-        public PlaidController(PlaidService plaidService)
+        public PlaidController(PlaidService plaidService, EgibiDbContext db)
         {
             _plaidService = plaidService;
+            _db = db;
         }
 
+        /// <summary>
+        /// Returns the current authenticated user's ID from the OIDC claims.
+        /// </summary>
         private int GetCurrentUserId()
         {
             var sub = User.FindFirstValue(Claims.Subject);
             return int.Parse(sub ?? throw new UnauthorizedAccessException("No subject claim found"));
+        }
+
+        /// <summary>
+        /// Checks whether the user has MFA enabled. Returns a 403 RequestResponse if not.
+        /// Plaid production access requires MFA before surfacing Plaid Link.
+        /// </summary>
+        private async Task<RequestResponse> RequireMfaAsync(int userId)
+        {
+            var user = await _db.AppUsers
+                .AsNoTracking()
+                .Where(u => u.Id == userId && u.IsActive)
+                .Select(u => new { u.IsMfaEnabled })
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+                return new RequestResponse(null, 401, "User not found.");
+
+            if (!user.IsMfaEnabled)
+                return new RequestResponse(
+                    new { mfaRequired = true },
+                    403,
+                    "Multi-factor authentication must be enabled before connecting a bank account. Please enable MFA in your Security settings.");
+
+            return null; // MFA is enabled, proceed
         }
 
         // =============================================
@@ -31,7 +63,7 @@ namespace egibi_api.Controllers
         // =============================================
 
         /// <summary>
-        /// Returns whether the current user has Plaid credentials configured.
+        /// Returns whether the user has Plaid credentials configured.
         /// </summary>
         [HttpGet("config/status")]
         public async Task<RequestResponse> GetConfigStatus()
@@ -48,7 +80,7 @@ namespace egibi_api.Controllers
         }
 
         /// <summary>
-        /// Saves (creates or updates) the user's Plaid developer credentials.
+        /// Saves the user's Plaid developer credentials.
         /// </summary>
         [HttpPost("config")]
         public async Task<RequestResponse> SaveConfig([FromBody] PlaidConfigRequest request)
@@ -61,10 +93,6 @@ namespace egibi_api.Controllers
             catch (UnauthorizedAccessException)
             {
                 return new RequestResponse(null, 401, "Unauthorized");
-            }
-            catch (Exception ex)
-            {
-                return new RequestResponse(null, 500, "Failed to save Plaid configuration", new ResponseError(ex));
             }
         }
 
@@ -83,85 +111,89 @@ namespace egibi_api.Controllers
             {
                 return new RequestResponse(null, 401, "Unauthorized");
             }
-            catch (Exception ex)
-            {
-                return new RequestResponse(null, 500, "Failed to delete Plaid configuration", new ResponseError(ex));
-            }
         }
 
         // =============================================
-        // CREATE LINK TOKEN
+        // PLAID LINK FLOW
         // =============================================
 
+        /// <summary>
+        /// Creates a Plaid link_token for the authenticated user.
+        /// Requires MFA to be enabled.
+        /// </summary>
         [HttpPost("create-link-token")]
         public async Task<RequestResponse> CreateLinkToken()
         {
             try
             {
                 var userId = GetCurrentUserId();
+
+                // Require MFA before allowing Plaid Link
+                var mfaCheck = await RequireMfaAsync(userId);
+                if (mfaCheck != null) return mfaCheck;
+
                 return await _plaidService.CreateLinkToken(userId);
             }
             catch (UnauthorizedAccessException)
             {
                 return new RequestResponse(null, 401, "Unauthorized");
             }
-            catch (Exception ex)
-            {
-                return new RequestResponse(null, 500, "Failed to create link token", new ResponseError(ex));
-            }
         }
 
-        // =============================================
-        // EXCHANGE PUBLIC TOKEN
-        // =============================================
-
+        /// <summary>
+        /// Exchanges a Plaid public_token for an access_token and creates a funding source.
+        /// Requires MFA to be enabled.
+        /// </summary>
         [HttpPost("exchange-token")]
-        public async Task<RequestResponse> ExchangeToken([FromBody] PlaidExchangeTokenRequest request)
+        public async Task<RequestResponse> ExchangePublicToken([FromBody] PlaidExchangeTokenRequest request)
         {
             try
             {
                 var userId = GetCurrentUserId();
+
+                // Require MFA before allowing token exchange
+                var mfaCheck = await RequireMfaAsync(userId);
+                if (mfaCheck != null) return mfaCheck;
+
                 return await _plaidService.ExchangePublicToken(request, userId);
             }
             catch (UnauthorizedAccessException)
             {
                 return new RequestResponse(null, 401, "Unauthorized");
             }
-            catch (Exception ex)
-            {
-                return new RequestResponse(null, 500, "Failed to exchange token", new ResponseError(ex));
-            }
         }
 
         // =============================================
-        // GET PLAID FUNDING DETAILS
+        // PLAID DATA ENDPOINTS
         // =============================================
 
+        /// <summary>
+        /// Returns Plaid-specific details for a funding source.
+        /// </summary>
         [HttpGet("funding-details")]
-        public async Task<RequestResponse> GetFundingDetails(int accountId)
+        public async Task<RequestResponse> GetFundingDetails([FromQuery] int accountId)
         {
             try
             {
                 var userId = GetCurrentUserId();
                 var details = await _plaidService.GetPlaidFundingDetails(accountId, userId);
+
+                if (details == null)
+                    return new RequestResponse(null, 404, "Plaid funding source not found");
+
                 return new RequestResponse(details, 200, "OK");
             }
             catch (UnauthorizedAccessException)
             {
                 return new RequestResponse(null, 401, "Unauthorized");
             }
-            catch (Exception ex)
-            {
-                return new RequestResponse(null, 500, "Failed to get funding details", new ResponseError(ex));
-            }
         }
 
-        // =============================================
-        // REFRESH BALANCES
-        // =============================================
-
+        /// <summary>
+        /// Refreshes balances for a Plaid-linked funding source.
+        /// </summary>
         [HttpPost("refresh-balances")]
-        public async Task<RequestResponse> RefreshBalances(int plaidItemId)
+        public async Task<RequestResponse> RefreshBalances([FromQuery] int plaidItemId)
         {
             try
             {
@@ -172,18 +204,13 @@ namespace egibi_api.Controllers
             {
                 return new RequestResponse(null, 401, "Unauthorized");
             }
-            catch (Exception ex)
-            {
-                return new RequestResponse(null, 500, "Failed to refresh balances", new ResponseError(ex));
-            }
         }
 
-        // =============================================
-        // GET TRANSACTIONS
-        // =============================================
-
+        /// <summary>
+        /// Returns recent transactions for a Plaid-linked funding source.
+        /// </summary>
         [HttpGet("transactions")]
-        public async Task<RequestResponse> GetTransactions(int plaidItemId, int days = 30)
+        public async Task<RequestResponse> GetTransactions([FromQuery] int plaidItemId, [FromQuery] int days = 30)
         {
             try
             {
@@ -194,18 +221,13 @@ namespace egibi_api.Controllers
             {
                 return new RequestResponse(null, 401, "Unauthorized");
             }
-            catch (Exception ex)
-            {
-                return new RequestResponse(null, 500, "Failed to get transactions", new ResponseError(ex));
-            }
         }
 
-        // =============================================
-        // GET AUTH (ACH NUMBERS)
-        // =============================================
-
+        /// <summary>
+        /// Returns ACH auth data for a Plaid-linked funding source.
+        /// </summary>
         [HttpGet("auth")]
-        public async Task<RequestResponse> GetAuth(int plaidItemId)
+        public async Task<RequestResponse> GetAuth([FromQuery] int plaidItemId)
         {
             try
             {
@@ -216,18 +238,13 @@ namespace egibi_api.Controllers
             {
                 return new RequestResponse(null, 401, "Unauthorized");
             }
-            catch (Exception ex)
-            {
-                return new RequestResponse(null, 500, "Failed to get auth data", new ResponseError(ex));
-            }
         }
 
-        // =============================================
-        // GET IDENTITY
-        // =============================================
-
+        /// <summary>
+        /// Returns identity info for a Plaid-linked funding source.
+        /// </summary>
         [HttpGet("identity")]
-        public async Task<RequestResponse> GetIdentity(int plaidItemId)
+        public async Task<RequestResponse> GetIdentity([FromQuery] int plaidItemId)
         {
             try
             {
@@ -238,18 +255,13 @@ namespace egibi_api.Controllers
             {
                 return new RequestResponse(null, 401, "Unauthorized");
             }
-            catch (Exception ex)
-            {
-                return new RequestResponse(null, 500, "Failed to get identity data", new ResponseError(ex));
-            }
         }
 
-        // =============================================
-        // REMOVE ITEM
-        // =============================================
-
+        /// <summary>
+        /// Removes a Plaid item and deactivates the funding source.
+        /// </summary>
         [HttpDelete("remove-item")]
-        public async Task<RequestResponse> RemoveItem(int plaidItemId)
+        public async Task<RequestResponse> RemoveItem([FromQuery] int plaidItemId)
         {
             try
             {
@@ -259,10 +271,6 @@ namespace egibi_api.Controllers
             catch (UnauthorizedAccessException)
             {
                 return new RequestResponse(null, 401, "Unauthorized");
-            }
-            catch (Exception ex)
-            {
-                return new RequestResponse(null, 500, "Failed to remove Plaid item", new ResponseError(ex));
             }
         }
     }
