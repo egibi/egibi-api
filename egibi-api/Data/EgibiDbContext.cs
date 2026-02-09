@@ -100,6 +100,7 @@ namespace egibi_api.Data
 
             modelBuilder.Entity<ConnectionType>().HasData(DbSetup.GetConnectionTypes());
             modelBuilder.Entity<Connection>().HasData(DbSetup.GetConnections());
+            modelBuilder.Entity<AccountType>().HasData(DbSetup.GetAccountTypes());
             modelBuilder.Entity<DataFormatType>().HasData(DbSetup.GetDataFormatTypes());
             modelBuilder.Entity<DataFrequencyType>().HasData(DbSetup.GetDataFrequencyTypes());
             modelBuilder.Entity<DataProviderType>().HasData(DbSetup.GetDataProviderTypes());

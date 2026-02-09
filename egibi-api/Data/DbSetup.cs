@@ -236,6 +236,53 @@ namespace egibi_api.Data
             return connections;
         }
 
+        public static List<AccountType> GetAccountTypes()
+        {
+            List<AccountType> accountTypes = new List<AccountType>
+            {
+                new AccountType
+                {
+                    Id = 1,
+                    Name = "Crypto Exchange",
+                    Description = "Cryptocurrency exchange account",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new AccountType
+                {
+                    Id = 2,
+                    Name = "Stock Broker",
+                    Description = "Stock brokerage account",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new AccountType
+                {
+                    Id = 3,
+                    Name = "Data Provider",
+                    Description = "Market data provider account",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new AccountType
+                {
+                    Id = 4,
+                    Name = "Funding Provider",
+                    Description = "Banking and funding provider account",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new AccountType
+                {
+                    Id = 5,
+                    Name = "Custom",
+                    Description = "Custom account configuration",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                }
+            };
+            return accountTypes;
+        }
         public static List<DataProviderType> GetDataProviderTypes()
         {
             List<DataProviderType> dataProviderTypes = new List<DataProviderType>
