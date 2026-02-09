@@ -5,7 +5,7 @@
 <h3 align="center">Multi-Asset Algorithmic Trading Platform — API</h3>
 
 <p align="center">
-  .NET 8 backend powering strategy design, backtesting, and multi-exchange trading
+  .NET 9 backend powering strategy design, backtesting, and multi-exchange trading
 </p>
 
 <p align="center">
@@ -27,7 +27,7 @@ Egibi API is the backend for the Egibi algorithmic trading platform. It provides
 
 | Layer | Technology |
 |---|---|
-| Framework | .NET 8 / ASP.NET Core |
+| Framework | .NET 9 / ASP.NET Core |
 | Database (relational) | PostgreSQL 16 via Entity Framework Core 9 |
 | Database (time-series) | QuestDB 8.2.1 (OHLC candle storage) |
 | Authentication | OpenIddict 5.8 (OAuth 2.0 / OpenID Connect) |
@@ -39,10 +39,10 @@ Egibi API is the backend for the Egibi algorithmic trading platform. It provides
 
 ## Prerequisites
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for PostgreSQL and QuestDB)
 - [Visual Studio 2022](https://visualstudio.microsoft.com/) or [Rider](https://www.jetbrains.com/rider/) (recommended)
-- [Node.js 20+](https://nodejs.org/) (only if running the frontend alongside)
+- [Node.js 24+ LTS](https://nodejs.org/) (only if running the frontend alongside)
 
 ## Quick Start
 
