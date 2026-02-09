@@ -42,7 +42,7 @@ Egibi API is the backend for the Egibi algorithmic trading platform. It provides
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for PostgreSQL and QuestDB)
 - [Visual Studio 2022](https://visualstudio.microsoft.com/) or [Rider](https://www.jetbrains.com/rider/) (recommended)
-- [Node.js 24+ LTS](https://nodejs.org/) (only if running the frontend alongside)
+- [Node.js 22+](https://nodejs.org/) (only if running the frontend alongside)
 
 ## Quick Start
 
