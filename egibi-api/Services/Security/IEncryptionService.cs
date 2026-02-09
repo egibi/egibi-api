@@ -67,5 +67,15 @@ namespace egibi_api.Services.Security
         /// <param name="oldMasterKey">The previous master key (base64)</param>
         /// <returns>DEK encrypted with the CURRENT master key</returns>
         string RotateMasterKey(string encryptedUserKey, string oldMasterKey);
+
+        // =============================================
+        // MASTER KEY ACCESS (for HMAC signing)
+        // =============================================
+
+        /// <summary>
+        /// Returns the raw master key bytes for HMAC operations (e.g., MFA challenge tokens).
+        /// Use with caution — only for signing/verification, never for direct data storage.
+        /// </summary>
+        byte[] GetMasterKeyBytes();
     }
 }

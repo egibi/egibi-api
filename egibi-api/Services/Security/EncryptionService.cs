@@ -148,6 +148,19 @@ namespace egibi_api.Services.Security
         }
 
         // =============================================
+        // MASTER KEY ACCESS
+        // =============================================
+
+        /// <inheritdoc />
+        public byte[] GetMasterKeyBytes()
+        {
+            // Return a copy to prevent external code from modifying the original
+            var copy = new byte[_masterKey.Length];
+            Buffer.BlockCopy(_masterKey, 0, copy, 0, _masterKey.Length);
+            return copy;
+        }
+
+        // =============================================
         // STATIC HELPERS
         // =============================================
 

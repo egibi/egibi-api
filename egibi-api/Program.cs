@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenIddict.Abstractions;
+using OtpNet;
 
 namespace egibi_api
 {
@@ -120,6 +121,7 @@ namespace egibi_api
             builder.Services.AddScoped<TestingService>();
             builder.Services.AddScoped<GeoDateTimeDataService>();
             builder.Services.AddScoped<StorageService>();
+            builder.Services.AddScoped<MfaService>();
             builder.Services.AddHttpClient();
 
             // FIX #13: Register previously missing services

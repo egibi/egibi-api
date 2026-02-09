@@ -66,6 +66,31 @@ namespace egibi_api.Data.Entities
         /// </summary>
         public DateTime? PasswordResetTokenExpiry { get; set; }
 
+        // =============================================
+        // MFA (TOTP)
+        // =============================================
+
+        /// <summary>
+        /// Whether MFA is enabled for this user.
+        /// When true, login requires a valid TOTP code after password verification.
+        /// </summary>
+        public bool IsMfaEnabled { get; set; } = false;
+
+        /// <summary>
+        /// Base32-encoded TOTP secret key, encrypted with the user's DEK.
+        /// Null when MFA has not been set up.
+        /// Used by authenticator apps (Google Authenticator, Authy, etc.) to generate 6-digit codes.
+        /// </summary>
+        [MaxLength(512)]
+        public string EncryptedTotpSecret { get; set; }
+
+        /// <summary>
+        /// JSON array of one-time recovery codes, encrypted with the user's DEK.
+        /// Each code can only be used once. Generated during MFA setup.
+        /// Example: ["ABC12345","DEF67890",...]
+        /// </summary>
+        public string EncryptedRecoveryCodes { get; set; }
+
         /// <summary>
         /// Navigation: all credential sets belonging to this user.
         /// </summary>

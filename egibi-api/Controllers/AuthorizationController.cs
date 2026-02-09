@@ -1,5 +1,8 @@
 #nullable disable
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using egibi_api.Data;
 using egibi_api.Services;
 using egibi_api.Services.Security;
@@ -20,6 +23,7 @@ namespace egibi_api.Controllers
         private readonly EgibiDbContext _db;
         private readonly IEncryptionService _encryption;
         private readonly AppUserService _userService;
+        private readonly MfaService _mfaService;
         private readonly IOpenIddictApplicationManager _applicationManager;
         private readonly IOpenIddictAuthorizationManager _authorizationManager;
         private readonly IOpenIddictScopeManager _scopeManager;
@@ -28,6 +32,7 @@ namespace egibi_api.Controllers
             EgibiDbContext db,
             IEncryptionService encryption,
             AppUserService userService,
+            MfaService mfaService,
             IOpenIddictApplicationManager applicationManager,
             IOpenIddictAuthorizationManager authorizationManager,
             IOpenIddictScopeManager scopeManager)
@@ -35,6 +40,7 @@ namespace egibi_api.Controllers
             _db = db;
             _encryption = encryption;
             _userService = userService;
+            _mfaService = mfaService;
             _applicationManager = applicationManager;
             _authorizationManager = authorizationManager;
             _scopeManager = scopeManager;
@@ -247,17 +253,78 @@ namespace egibi_api.Controllers
             if (user == null || !_encryption.VerifyPassword(request.Password, user.PasswordHash))
                 return Unauthorized(new { error = "Invalid email or password." });
 
-            // Create a cookie-based identity for the authorize endpoint
-            var identity = new ClaimsIdentity("EgibiCookie");
-            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-            identity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
-            identity.AddClaim(new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}".Trim()));
-            identity.AddClaim(new Claim(ClaimTypes.Role, user.Role));
+            // --- MFA CHECK ---
+            // If MFA is enabled, don't set the cookie yet.
+            // Return a temporary MFA challenge token instead.
+            if (user.IsMfaEnabled)
+            {
+                var mfaToken = GenerateMfaChallengeToken(user.Id);
+                return Ok(new
+                {
+                    mfaRequired = true,
+                    mfaToken
+                });
+            }
 
-            await HttpContext.SignInAsync("EgibiCookie", new ClaimsPrincipal(identity));
+            // No MFA — proceed with cookie as before
+            await SignInWithCookie(user);
 
             return Ok(new
             {
+                mfaRequired = false,
+                message = "Authenticated",
+                email = user.Email,
+                role = user.Role,
+                firstName = user.FirstName,
+                lastName = user.LastName
+            });
+        }
+
+        // =============================================
+        // POST /auth/mfa-verify  (Completes login when MFA is required)
+        // =============================================
+        [HttpPost("~/auth/mfa-verify")]
+        [AllowAnonymous]
+        public async Task<IActionResult> MfaVerify([FromBody] MfaVerifyLoginRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.MfaToken))
+                return BadRequest(new { error = "MFA token is required." });
+
+            if (string.IsNullOrWhiteSpace(request?.Code) && string.IsNullOrWhiteSpace(request?.RecoveryCode))
+                return BadRequest(new { error = "A verification code or recovery code is required." });
+
+            // Validate the MFA challenge token
+            var userId = ValidateMfaChallengeToken(request.MfaToken);
+            if (userId == null)
+                return Unauthorized(new { error = "MFA session has expired. Please log in again." });
+
+            bool isValid;
+            string error;
+
+            if (!string.IsNullOrWhiteSpace(request.Code))
+            {
+                // Verify TOTP code
+                (isValid, error) = await _mfaService.VerifyCodeAsync(userId.Value, request.Code);
+            }
+            else
+            {
+                // Verify recovery code
+                (isValid, error) = await _mfaService.VerifyRecoveryCodeAsync(userId.Value, request.RecoveryCode);
+            }
+
+            if (!isValid)
+                return Unauthorized(new { error = error ?? "Invalid verification code." });
+
+            // MFA passed — set the cookie and complete login
+            var user = await _db.AppUsers.FirstOrDefaultAsync(u => u.Id == userId.Value && u.IsActive);
+            if (user == null)
+                return Unauthorized(new { error = "User account not found." });
+
+            await SignInWithCookie(user);
+
+            return Ok(new
+            {
+                mfaRequired = false,
                 message = "Authenticated",
                 email = user.Email,
                 role = user.Role,
@@ -284,16 +351,11 @@ namespace egibi_api.Controllers
 
             // Auto-login after signup: set the cookie so the SPA can immediately
             // proceed with the OIDC authorize flow
-            var identity = new ClaimsIdentity("EgibiCookie");
-            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-            identity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
-            identity.AddClaim(new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}".Trim()));
-            identity.AddClaim(new Claim(ClaimTypes.Role, user.Role));
-
-            await HttpContext.SignInAsync("EgibiCookie", new ClaimsPrincipal(identity));
+            await SignInWithCookie(user);
 
             return Ok(new
             {
+                mfaRequired = false,
                 message = "Account created",
                 email = user.Email,
                 role = user.Role,
@@ -357,6 +419,93 @@ namespace egibi_api.Controllers
         }
 
         // =============================================
+        // MFA CHALLENGE TOKEN HELPERS
+        // =============================================
+
+        /// <summary>
+        /// Creates a short-lived, tamper-proof token that proves the user passed password verification.
+        /// Contains: userId + expiry timestamp, signed via HMAC-SHA256 with the master key.
+        /// </summary>
+        private string GenerateMfaChallengeToken(int userId)
+        {
+            var expiry = DateTimeOffset.UtcNow.AddMinutes(5).ToUnixTimeSeconds();
+            var payload = $"{userId}:{expiry}";
+            var payloadBytes = Encoding.UTF8.GetBytes(payload);
+
+            // HMAC-SHA256 signature using the master key for tamper protection
+            var masterKey = _encryption.GetMasterKeyBytes();
+            using var hmac = new HMACSHA256(masterKey);
+            var signature = hmac.ComputeHash(payloadBytes);
+
+            // Combine payload + signature
+            var combined = new byte[payloadBytes.Length + 1 + signature.Length];
+            Buffer.BlockCopy(payloadBytes, 0, combined, 0, payloadBytes.Length);
+            combined[payloadBytes.Length] = (byte)'.'; // separator
+            Buffer.BlockCopy(signature, 0, combined, payloadBytes.Length + 1, signature.Length);
+
+            return Convert.ToBase64String(combined);
+        }
+
+        /// <summary>
+        /// Validates an MFA challenge token and returns the userId if valid and not expired.
+        /// </summary>
+        private int? ValidateMfaChallengeToken(string token)
+        {
+            try
+            {
+                var combined = Convert.FromBase64String(token);
+
+                // Find the separator
+                var sepIndex = Array.IndexOf(combined, (byte)'.');
+                if (sepIndex < 0) return null;
+
+                var payloadBytes = combined[..sepIndex];
+                var receivedSignature = combined[(sepIndex + 1)..];
+
+                // Verify HMAC signature
+                var masterKey = _encryption.GetMasterKeyBytes();
+                using var hmac = new HMACSHA256(masterKey);
+                var expectedSignature = hmac.ComputeHash(payloadBytes);
+
+                if (!CryptographicOperations.FixedTimeEquals(receivedSignature, expectedSignature))
+                    return null;
+
+                // Parse payload
+                var payload = Encoding.UTF8.GetString(payloadBytes);
+                var parts = payload.Split(':');
+                if (parts.Length != 2) return null;
+
+                var userId = int.Parse(parts[0]);
+                var expiry = long.Parse(parts[1]);
+
+                // Check expiry
+                if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() > expiry)
+                    return null;
+
+                return userId;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // =============================================
+        // COOKIE HELPER
+        // =============================================
+
+        private async Task SignInWithCookie(Data.Entities.AppUser user)
+        {
+            var identity = new ClaimsIdentity("EgibiCookie");
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+            identity.AddClaim(new Claim(ClaimTypes.Email, user.Email));
+            identity.AddClaim(new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}".Trim()));
+            identity.AddClaim(new Claim(ClaimTypes.Role, user.Role));
+
+            await HttpContext.SignInAsync("EgibiCookie", new ClaimsPrincipal(identity));
+        }
+
+        // =============================================
         // Helpers
         // =============================================
 
@@ -417,5 +566,12 @@ namespace egibi_api.Controllers
         public string Email { get; set; }
         public string Token { get; set; }
         public string NewPassword { get; set; }
+    }
+
+    public class MfaVerifyLoginRequest
+    {
+        public string MfaToken { get; set; }
+        public string Code { get; set; }
+        public string RecoveryCode { get; set; }
     }
 }
