@@ -1,0 +1,32 @@
+# Build artifacts
+**/bin/
+**/obj/
+**/out/
+
+# Frontend (not needed for API image)
+egibi-ui/
+
+# Docker & Git
+docker-compose.yml
+.git/
+.gitignore
+.github/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Dev scripts
+start-dev.ps1
+stop-dev.ps1
+
+# Data volumes
+db/
+
+# Docs
+*.md
+*.7z
+*.zip
+egibi-logo.png

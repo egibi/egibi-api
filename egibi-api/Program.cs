@@ -45,21 +45,17 @@ namespace egibi_api
 
             if (builder.Environment.IsProduction())
             {
-                dbConnectionString = builder.Configuration.GetConnectionString("prod_connectionstring");
-                questDbConnectionString = builder.Configuration.GetConnectionString("EgibiQuestDb");
+                dbConnectionString = builder.Configuration.GetConnectionString("EgibiDb");
+                questDbConnectionString = builder.Configuration.GetConnectionString("QuestDb");
 
                 builder.Services.AddDbContextPool<EgibiDbContext>(options =>
                 {
-                    // FIX #1: Pass the connection string value directly, not as a key lookup
                     options.UseNpgsql(dbConnectionString);
-
-                    // FIX #1: Register OpenIddict entity sets (was missing in production block)
                     options.UseOpenIddict();
                 });
 
-                // FIX #11: Add production CORS policy
                 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-                    ?? new[] { "https://app.egibi.io" };
+                    ?? new[] { "https://www.egibi.io" };
 
                 builder.Services.AddCors(options =>
                 {
@@ -176,10 +172,33 @@ namespace egibi_api
                     // Use ASP.NET Core Data Protection for token format (development-friendly)
                     options.UseDataProtection();
 
-                    // Development: ephemeral keys (regenerated on restart)
-                    // TODO: Replace with persistent certificates for production
-                    options.AddDevelopmentEncryptionCertificate()
-                           .AddDevelopmentSigningCertificate();
+                    // Signing & encryption certificates
+                    if (builder.Environment.IsProduction())
+                    {
+                        var signingCertBase64 = builder.Configuration["OIDC_SIGNING_CERT"];
+                        var encryptionCertBase64 = builder.Configuration["OIDC_ENCRYPTION_CERT"];
+
+                        if (!string.IsNullOrEmpty(signingCertBase64) && !string.IsNullOrEmpty(encryptionCertBase64))
+                        {
+                            var signingCert = System.Security.Cryptography.X509Certificates.X509CertificateLoader
+                                .LoadPkcs12(Convert.FromBase64String(signingCertBase64), null);
+                            var encryptionCert = System.Security.Cryptography.X509Certificates.X509CertificateLoader
+                                .LoadPkcs12(Convert.FromBase64String(encryptionCertBase64), null);
+
+                            options.AddSigningCertificate(signingCert)
+                                   .AddEncryptionCertificate(encryptionCert);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException(
+                                "Production requires OIDC_SIGNING_CERT and OIDC_ENCRYPTION_CERT environment variables.");
+                        }
+                    }
+                    else
+                    {
+                        options.AddDevelopmentEncryptionCertificate()
+                               .AddDevelopmentSigningCertificate();
+                    }
 
                     // Register the ASP.NET Core host
                     options.UseAspNetCore()
@@ -208,7 +227,7 @@ namespace egibi_api
             {
                 options.Cookie.Name = "egibi.auth";
                 options.Cookie.HttpOnly = true;
-                options.Cookie.SameSite = SameSiteMode.None; // Required: Angular (4200) ↔ API (7182) are cross-origin
+                options.Cookie.SameSite = SameSiteMode.None; // Required: Angular (www.egibi.io) ↔ API (api.egibi.io) are cross-origin
                 options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Required when SameSite=None
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                 options.Events.OnRedirectToLogin = context =>
@@ -216,7 +235,6 @@ namespace egibi_api
                     // For API calls, return 401. For browser navigations (authorize endpoint), redirect to SPA login.
                     if (context.Request.Path.StartsWithSegments("/connect"))
                     {
-                        // FIX #11: Use configuration for redirect URI instead of hardcoded localhost
                         var loginUrl = builder.Configuration["Oidc:LoginRedirectUrl"] ?? "http://localhost:4200/auth/login";
                         context.Response.Redirect(loginUrl);
                     }
@@ -248,13 +266,11 @@ namespace egibi_api
 
             builder.Services.AddSignalR();
 
-
             // FIX #16: Set a reasonable upload limit instead of long.MaxValue (DoS vector)
             builder.Services.Configure<FormOptions>(options =>
             {
                 options.MultipartBodyLengthLimit = 104_857_600; // 100 MB
             });
-
 
             builder.Services.AddControllers();
 
@@ -345,23 +361,30 @@ namespace egibi_api
                 app.UseCors(CorsPolicyProd);
             }
 
+            // Health check for Railway
+            app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
             // SignalR 
             //app.MapHub<ProgressHub>("/progressHub");
             app.MapHub<ChatHub>("/notificationHub");
             app.MapHub<FileUploadHub>("/fileUploadHub");
 
-            app.UseHttpsRedirection();
+            // Only redirect in development — Railway/Cloudflare handle SSL termination in production
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
+
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
-
 
             app.Run();
         }
 
         /// <summary>
         /// Seeds the OpenIddict application entries (OIDC clients).
-        /// FIX #11: Redirect URIs are now configurable via appsettings.
+        /// Redirect URIs are configurable via appsettings.
         /// </summary>
         private static async Task SeedOidcClientsAsync(IServiceProvider services, IConfiguration configuration)
         {
