@@ -125,37 +125,7 @@ namespace egibi_api
             builder.Services.AddScoped<ExchangesService>();
 
             // --- Security & Auth ---
-            // TEMP DIAGNOSTIC — remove after confirming MasterKey loads
-            Console.WriteLine("[DIAG] === ALL ENV VARS CONTAINING 'ENCRYPT' OR 'MASTER' ===");
-            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
-            {
-                var key = entry.Key?.ToString() ?? "";
-                if (key.Contains("ncrypt", StringComparison.OrdinalIgnoreCase) ||
-                    key.Contains("aster", StringComparison.OrdinalIgnoreCase))
-                {
-                    Console.WriteLine($"[DIAG] ENV: '{key}' length={entry.Value?.ToString()?.Length ?? 0}");
-                }
-            }
-            Console.WriteLine("[DIAG] === ALL SERVICE ENV VAR NAMES (non-system) ===");
-            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
-            {
-                var key = entry.Key?.ToString() ?? "";
-                // Skip common system/dotnet vars to reduce noise
-                if (!key.StartsWith("DOTNET_") && !key.StartsWith("HOME") &&
-                    !key.StartsWith("PATH") && !key.StartsWith("HOSTNAME") &&
-                    !key.StartsWith("LANG") && !key.StartsWith("LC_") &&
-                    !key.StartsWith("TERM") && !key.StartsWith("SHELL") &&
-                    !key.StartsWith("USER") && !key.StartsWith("SHLVL") &&
-                    !key.StartsWith("PWD") && !key.StartsWith("TMPDIR"))
-                {
-                    Console.WriteLine($"[DIAG] ENV NAME: '{key}'");
-                }
-            }
-            var rawMasterKey = builder.Configuration["Encryption:MasterKey"];
-            Console.WriteLine($"[DIAG] Config Encryption:MasterKey is null={rawMasterKey == null} empty={string.IsNullOrWhiteSpace(rawMasterKey)} len={rawMasterKey?.Length ?? 0}");
-            // END TEMP DIAGNOSTIC
-
-            var masterKey = rawMasterKey;
+            var masterKey = builder.Configuration["Encryption:MasterKey"];
             builder.Services.AddSingleton<IEncryptionService>(new EncryptionService(masterKey));
             builder.Services.AddScoped<AppUserService>();
 
