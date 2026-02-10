@@ -35,8 +35,6 @@ namespace egibi_api
             builder.Services.Configure<PlaidOptions>(
                 builder.Configuration.GetSection("Plaid"));
 
-            Console.WriteLine($"env={builder.Environment.EnvironmentName}");
-
             // Auto-start Docker databases in Development
             if (builder.Environment.IsDevelopment())
             {
