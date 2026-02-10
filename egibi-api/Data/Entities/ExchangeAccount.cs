@@ -14,5 +14,13 @@ namespace egibi_api.Data.Entities
 
         public int? ExchangeFeeStructureTierId { get; set; }
         public ExchangeFeeStructureTier ExchangeFeeStructureTier { get; set; }
+
+        // FIX F-02: Add user ownership for data scoping
+        /// <summary>
+        /// The authenticated user who owns this exchange account.
+        /// All queries must be scoped by this field to prevent IDOR.
+        /// </summary>
+        public int? AppUserId { get; set; }
+        public virtual AppUser AppUser { get; set; }
     }
 }
