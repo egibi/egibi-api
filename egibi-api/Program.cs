@@ -10,6 +10,7 @@ using egibi_api.Services.Security;
 using EgibiBinanceUsSdk;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenIddict.Abstractions;
 using OtpNet;
@@ -50,6 +51,7 @@ namespace egibi_api
                 {
                     options.UseNpgsql(dbConnectionString);
                     options.UseOpenIddict();
+                    options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
                 });
 
                 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
@@ -81,6 +83,7 @@ namespace egibi_api
 
                     // Register OpenIddict entity sets in EF Core
                     options.UseOpenIddict();
+                    options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
                 });
 
                 builder.Services.AddCors(options =>

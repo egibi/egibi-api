@@ -1,6 +1,7 @@
 // FILE: egibi-api/Data/DbSetup.cs
 using egibi_api.Data.Entities;
 using EgibiGeoDateTimeDataLibrary.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Country = egibi_api.Data.Entities.Country;
 using TimeZone = egibi_api.Data.Entities.TimeZone;
 
@@ -246,7 +247,7 @@ namespace egibi_api.Data
                     Name = "Crypto Exchange",
                     Description = "Cryptocurrency exchange account",
                     IsActive = true,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = new DateTime(2026, 2, 7, 0, 0, 0, DateTimeKind.Utc)
                 },
                 new AccountType
                 {
@@ -438,7 +439,7 @@ namespace egibi_api.Data
                 {
                     Id = 1,
                     Name = "State",
-                    CreatedAt = DateTime.Now.ToUniversalTime(),
+                    CreatedAt = DateTime.UtcNow,
                     IsActive = true
                 }
             };
