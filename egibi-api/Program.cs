@@ -125,7 +125,17 @@ namespace egibi_api
             builder.Services.AddScoped<ExchangesService>();
 
             // --- Security & Auth ---
-            var masterKey = builder.Configuration["Encryption:MasterKey"];
+            // TEMP DIAGNOSTIC — remove after confirming MasterKey loads
+            var rawMasterKey = builder.Configuration["Encryption:MasterKey"];
+            Console.WriteLine($"[DIAG] Encryption:MasterKey is null: {rawMasterKey == null}");
+            Console.WriteLine($"[DIAG] Encryption:MasterKey is empty: {string.IsNullOrWhiteSpace(rawMasterKey)}");
+            Console.WriteLine($"[DIAG] Encryption:MasterKey length: {rawMasterKey?.Length ?? 0}");
+            Console.WriteLine($"[DIAG] ENV Encryption__MasterKey is set: {!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("Encryption__MasterKey"))}");
+            Console.WriteLine($"[DIAG] ENV Encryption__MasterKey length: {Environment.GetEnvironmentVariable("Encryption__MasterKey")?.Length ?? 0}");
+            Console.WriteLine($"[DIAG] ASPNETCORE_ENVIRONMENT: {builder.Environment.EnvironmentName}");
+            // END TEMP DIAGNOSTIC
+
+            var masterKey = rawMasterKey;
             builder.Services.AddSingleton<IEncryptionService>(new EncryptionService(masterKey));
             builder.Services.AddScoped<AppUserService>();
 
