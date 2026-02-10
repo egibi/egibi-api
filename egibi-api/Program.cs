@@ -126,13 +126,33 @@ namespace egibi_api
 
             // --- Security & Auth ---
             // TEMP DIAGNOSTIC — remove after confirming MasterKey loads
+            Console.WriteLine("[DIAG] === ALL ENV VARS CONTAINING 'ENCRYPT' OR 'MASTER' ===");
+            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
+            {
+                var key = entry.Key?.ToString() ?? "";
+                if (key.Contains("ncrypt", StringComparison.OrdinalIgnoreCase) ||
+                    key.Contains("aster", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine($"[DIAG] ENV: '{key}' length={entry.Value?.ToString()?.Length ?? 0}");
+                }
+            }
+            Console.WriteLine("[DIAG] === ALL SERVICE ENV VAR NAMES (non-system) ===");
+            foreach (System.Collections.DictionaryEntry entry in Environment.GetEnvironmentVariables())
+            {
+                var key = entry.Key?.ToString() ?? "";
+                // Skip common system/dotnet vars to reduce noise
+                if (!key.StartsWith("DOTNET_") && !key.StartsWith("HOME") &&
+                    !key.StartsWith("PATH") && !key.StartsWith("HOSTNAME") &&
+                    !key.StartsWith("LANG") && !key.StartsWith("LC_") &&
+                    !key.StartsWith("TERM") && !key.StartsWith("SHELL") &&
+                    !key.StartsWith("USER") && !key.StartsWith("SHLVL") &&
+                    !key.StartsWith("PWD") && !key.StartsWith("TMPDIR"))
+                {
+                    Console.WriteLine($"[DIAG] ENV NAME: '{key}'");
+                }
+            }
             var rawMasterKey = builder.Configuration["Encryption:MasterKey"];
-            Console.WriteLine($"[DIAG] Encryption:MasterKey is null: {rawMasterKey == null}");
-            Console.WriteLine($"[DIAG] Encryption:MasterKey is empty: {string.IsNullOrWhiteSpace(rawMasterKey)}");
-            Console.WriteLine($"[DIAG] Encryption:MasterKey length: {rawMasterKey?.Length ?? 0}");
-            Console.WriteLine($"[DIAG] ENV Encryption__MasterKey is set: {!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("Encryption__MasterKey"))}");
-            Console.WriteLine($"[DIAG] ENV Encryption__MasterKey length: {Environment.GetEnvironmentVariable("Encryption__MasterKey")?.Length ?? 0}");
-            Console.WriteLine($"[DIAG] ASPNETCORE_ENVIRONMENT: {builder.Environment.EnvironmentName}");
+            Console.WriteLine($"[DIAG] Config Encryption:MasterKey is null={rawMasterKey == null} empty={string.IsNullOrWhiteSpace(rawMasterKey)} len={rawMasterKey?.Length ?? 0}");
             // END TEMP DIAGNOSTIC
 
             var masterKey = rawMasterKey;
