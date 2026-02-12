@@ -43,7 +43,7 @@ namespace egibi_api.Services
         /// Returns error if the email already has a pending request or an active account.
         /// </summary>
         public async Task<(AccessRequest Request, string Error)> SubmitRequestAsync(
-            string email, string password, string firstName, string lastName)
+            string email, string password, string firstName, string lastName, string ipAddress = null)
         {
             email = email.Trim().ToLowerInvariant();
 
@@ -70,6 +70,7 @@ namespace egibi_api.Services
                 LastName = lastName?.Trim(),
                 PasswordHash = _encryption.HashPassword(password),
                 Status = "pending_verification",
+                IpAddress = ipAddress,
                 EmailVerificationToken = tokenHash,
                 EmailVerificationExpiresAt = DateTime.UtcNow.AddHours(24),
                 CreatedAt = DateTime.UtcNow
@@ -94,7 +95,7 @@ namespace egibi_api.Services
                 }
             });
 
-            _logger.LogInformation("Access request submitted for {Email} (pending verification)", email);
+            _logger.LogInformation("Access request submitted for {Email} (pending verification) from IP {IpAddress}", email, ipAddress);
             return (request, null);
         }
 
@@ -226,7 +227,7 @@ namespace egibi_api.Services
             if (request == null)
                 return (null, "Access request not found.");
 
-            if (request.Status != "pending")
+            if (request.Status != "pending" && request.Status != "pending_verification")
                 return (null, $"Request has already been {request.Status}.");
 
             // Check if a user with this email was created in the meantime
@@ -296,7 +297,7 @@ namespace egibi_api.Services
             if (request == null)
                 return (false, "Access request not found.");
 
-            if (request.Status != "pending")
+            if (request.Status != "pending" && request.Status != "pending_verification")
                 return (false, $"Request has already been {request.Status}.");
 
             request.Status = "denied";
@@ -327,6 +328,29 @@ namespace egibi_api.Services
         }
 
         // =============================================
+        // ADMIN: DELETE REQUEST
+        // =============================================
+
+        /// <summary>
+        /// Permanently deletes an access request record.
+        /// </summary>
+        public async Task<(bool Success, string Error)> DeleteAsync(int requestId)
+        {
+            var request = await _db.AccessRequests.FirstOrDefaultAsync(r => r.Id == requestId);
+            if (request == null)
+                return (false, "Access request not found.");
+
+            _db.AccessRequests.Remove(request);
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Access request {RequestId} deleted. Email: {Email}",
+                requestId, request.Email);
+
+            return (true, null);
+        }
+
+        // =============================================
         // TOKEN HELPERS
         // =============================================
 
@@ -335,7 +359,7 @@ namespace egibi_api.Services
         /// </summary>
         private static string GenerateSecureToken()
         {
-            var bytes = new byte[48]; // 48 bytes → 64 base64url chars
+            var bytes = new byte[48]; // 48 bytes -> 64 base64url chars
             RandomNumberGenerator.Fill(bytes);
             return Convert.ToBase64String(bytes)
                 .Replace("+", "-")

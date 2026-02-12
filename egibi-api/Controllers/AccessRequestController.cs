@@ -49,8 +49,12 @@ namespace egibi_api.Controllers
                     FirstName = r.FirstName,
                     LastName = r.LastName,
                     Status = r.Status,
+                    IpAddress = r.IpAddress,
+                    DenialReason = r.DenialReason,
                     CreatedAt = r.CreatedAt,
-                    ReviewedAt = r.ReviewedAt
+                    ReviewedByUserId = r.ReviewedByUserId,
+                    ReviewedAt = r.ReviewedAt,
+                    EmailVerifiedAt = r.EmailVerifiedAt
                 }).ToList();
 
                 return new RequestResponse(dtos, 200, "OK");
@@ -80,10 +84,12 @@ namespace egibi_api.Controllers
                     FirstName = r.FirstName,
                     LastName = r.LastName,
                     Status = r.Status,
+                    IpAddress = r.IpAddress,
                     DenialReason = r.DenialReason,
                     CreatedAt = r.CreatedAt,
                     ReviewedByUserId = r.ReviewedByUserId,
-                    ReviewedAt = r.ReviewedAt
+                    ReviewedAt = r.ReviewedAt,
+                    EmailVerifiedAt = r.EmailVerifiedAt
                 }).ToList();
 
                 return new RequestResponse(dtos, 200, "OK");
@@ -145,6 +151,30 @@ namespace egibi_api.Controllers
                 return new RequestResponse(null, 500, "Failed to deny access request", new ResponseError(ex));
             }
         }
+
+        // =============================================
+        // DELETE REQUEST
+        // =============================================
+
+        [HttpDelete("{id}")]
+        public async Task<RequestResponse> DeleteRequest(int id)
+        {
+            try
+            {
+                var (success, error) = await _accessRequestService.DeleteAsync(id);
+
+                if (!success)
+                    return new RequestResponse(null, 404, error);
+
+                _logger.LogInformation("Access request {RequestId} deleted by admin {AdminId}", id, GetCurrentUserId());
+                return new RequestResponse(null, 200, "Access request deleted.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete access request {RequestId}", id);
+                return new RequestResponse(null, 500, "Failed to delete access request", new ResponseError(ex));
+            }
+        }
     }
 
     // =============================================
@@ -158,10 +188,12 @@ namespace egibi_api.Controllers
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Status { get; set; }
+        public string IpAddress { get; set; }
         public string DenialReason { get; set; }
         public DateTime CreatedAt { get; set; }
         public int? ReviewedByUserId { get; set; }
         public DateTime? ReviewedAt { get; set; }
+        public DateTime? EmailVerifiedAt { get; set; }
     }
 
     public class DenyAccessRequestBody

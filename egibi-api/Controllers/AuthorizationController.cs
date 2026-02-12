@@ -353,8 +353,12 @@ namespace egibi_api.Controllers
             if (string.IsNullOrWhiteSpace(request?.Email) || string.IsNullOrWhiteSpace(request?.Password))
                 return BadRequest(new { error = "Email and password are required." });
 
+            // Capture the client's IP address (supports reverse proxy via X-Forwarded-For)
+            var ipAddress = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',').First().Trim()
+                ?? HttpContext.Connection.RemoteIpAddress?.MapToIPv4().ToString();
+
             var (accessRequest, error) = await _accessRequestService.SubmitRequestAsync(
-                request.Email, request.Password, request.FirstName, request.LastName);
+                request.Email, request.Password, request.FirstName, request.LastName, ipAddress);
 
             if (accessRequest == null)
                 return BadRequest(new { error });
