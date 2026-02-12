@@ -14,6 +14,10 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using OpenIddict.Abstractions;
 using OtpNet;
+using Resend;
+using Resend.Payloads;
+using egibi_api.Services.Email;
+
 
 namespace egibi_api
 {
@@ -121,6 +125,16 @@ namespace egibi_api
             builder.Services.AddScoped<MfaService>();
             builder.Services.AddHttpClient();
 
+            // Resend (Emailing)
+            builder.Services.AddOptions();
+            builder.Services.AddHttpClient<ResendClient>();
+            builder.Services.Configure<ResendClientOptions>(o =>
+            {
+                o.ApiToken = builder.Configuration["Resend:ApiKey"]!;
+            });
+            builder.Services.AddTransient<IResend, ResendClient>();
+            builder.Services.AddScoped<IEmailService, ResendEmailService>();
+
             // FIX #13: Register previously missing services
             builder.Services.AddScoped<ExchangeAccountsService>();
             builder.Services.AddScoped<ExchangesService>();
@@ -129,6 +143,7 @@ namespace egibi_api
             var masterKey = builder.Configuration["Encryption:MasterKey"];
             builder.Services.AddSingleton<IEncryptionService>(new EncryptionService(masterKey));
             builder.Services.AddScoped<AppUserService>();
+            builder.Services.AddScoped<AccessRequestService>();
 
             // --- OpenIddict OIDC Server ---
             builder.Services.AddOpenIddict()

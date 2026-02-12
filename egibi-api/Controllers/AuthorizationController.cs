@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using egibi_api.Data;
 using egibi_api.Services;
+using egibi_api.Services.Email;
 using egibi_api.Services.Security;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
@@ -24,6 +25,9 @@ namespace egibi_api.Controllers
         private readonly IEncryptionService _encryption;
         private readonly AppUserService _userService;
         private readonly MfaService _mfaService;
+        private readonly AccessRequestService _accessRequestService;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
         private readonly IOpenIddictApplicationManager _applicationManager;
         private readonly IOpenIddictAuthorizationManager _authorizationManager;
         private readonly IOpenIddictScopeManager _scopeManager;
@@ -33,6 +37,9 @@ namespace egibi_api.Controllers
             IEncryptionService encryption,
             AppUserService userService,
             MfaService mfaService,
+            AccessRequestService accessRequestService,
+            IEmailService emailService,
+            IConfiguration config,
             IOpenIddictApplicationManager applicationManager,
             IOpenIddictAuthorizationManager authorizationManager,
             IOpenIddictScopeManager scopeManager)
@@ -41,6 +48,9 @@ namespace egibi_api.Controllers
             _encryption = encryption;
             _userService = userService;
             _mfaService = mfaService;
+            _accessRequestService = accessRequestService;
+            _emailService = emailService;
+            _config = config;
             _applicationManager = applicationManager;
             _authorizationManager = authorizationManager;
             _scopeManager = scopeManager;
@@ -334,7 +344,7 @@ namespace egibi_api.Controllers
         }
 
         // =============================================
-        // POST /auth/signup
+        // POST /auth/signup  (creates an AccessRequest with email verification)
         // =============================================
         [HttpPost("~/auth/signup")]
         [AllowAnonymous]
@@ -343,24 +353,60 @@ namespace egibi_api.Controllers
             if (string.IsNullOrWhiteSpace(request?.Email) || string.IsNullOrWhiteSpace(request?.Password))
                 return BadRequest(new { error = "Email and password are required." });
 
-            var (user, error) = await _userService.CreateUserAsync(
+            var (accessRequest, error) = await _accessRequestService.SubmitRequestAsync(
                 request.Email, request.Password, request.FirstName, request.LastName);
 
-            if (user == null)
+            if (accessRequest == null)
                 return BadRequest(new { error });
-
-            // Auto-login after signup: set the cookie so the SPA can immediately
-            // proceed with the OIDC authorize flow
-            await SignInWithCookie(user);
 
             return Ok(new
             {
-                mfaRequired = false,
-                message = "Account created",
-                email = user.Email,
-                role = user.Role,
-                firstName = user.FirstName,
-                lastName = user.LastName
+                accessRequestSubmitted = true,
+                emailVerificationRequired = true,
+                message = "Please check your email to verify your address. Once verified, an administrator will review your request."
+            });
+        }
+
+        // =============================================
+        // POST /auth/verify-email
+        // =============================================
+        [HttpPost("~/auth/verify-email")]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Email) || string.IsNullOrWhiteSpace(request?.Token))
+                return BadRequest(new { error = "Email and verification token are required." });
+
+            var (success, error) = await _accessRequestService.VerifyEmailAsync(request.Email, request.Token);
+
+            if (!success)
+                return BadRequest(new { error });
+
+            return Ok(new
+            {
+                verified = true,
+                message = "Your email has been verified. An administrator will review your access request and you will be notified by email once a decision has been made."
+            });
+        }
+
+        // =============================================
+        // POST /auth/resend-verification
+        // =============================================
+        [HttpPost("~/auth/resend-verification")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request?.Email))
+                return BadRequest(new { error = "Email is required." });
+
+            var (success, error) = await _accessRequestService.ResendVerificationAsync(request.Email);
+
+            if (!success)
+                return BadRequest(new { error });
+
+            return Ok(new
+            {
+                message = "A new verification email has been sent. Please check your inbox."
             });
         }
 
@@ -377,16 +423,23 @@ namespace egibi_api.Controllers
             var token = await _userService.GeneratePasswordResetTokenAsync(request.Email);
 
             // Always return success to prevent email enumeration attacks.
-            // In production, the token would be sent via email.
             if (token != null)
             {
-                // TODO: Send email with reset link:
-                //   {spaBaseUrl}/auth/reset-password?email={email}&token={token}
-                // For now, log it in development for testing
-                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AuthorizationController>>();
-                logger.LogWarning(
-                    "DEV ONLY — Password reset token for {Email}: {Token}",
-                    request.Email, token);
+                var frontendUrl = _config["App:FrontendUrl"] ?? "https://www.egibi.io";
+                var resetLink = $"{frontendUrl}/auth/reset-password?email={Uri.EscapeDataString(request.Email)}&token={Uri.EscapeDataString(token)}";
+
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _emailService.SendPasswordResetAsync(request.Email, resetLink);
+                    }
+                    catch (Exception ex)
+                    {
+                        var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AuthorizationController>>();
+                        logger.LogError(ex, "Failed to send password reset email for {Email}", request.Email);
+                    }
+                });
             }
 
             return Ok(new
@@ -573,5 +626,16 @@ namespace egibi_api.Controllers
         public string MfaToken { get; set; }
         public string Code { get; set; }
         public string RecoveryCode { get; set; }
+    }
+
+    public class VerifyEmailRequest
+    {
+        public string Email { get; set; }
+        public string Token { get; set; }
+    }
+
+    public class ResendVerificationRequest
+    {
+        public string Email { get; set; }
     }
 }

@@ -51,6 +51,7 @@ namespace egibi_api.Services
 
         /// <summary>
         /// Creates a new user account. Returns null + error message if validation fails.
+        /// New self-registered accounts are NOT approved by default — an admin must approve them.
         /// </summary>
         public async Task<(AppUser User, string Error)> CreateUserAsync(
             string email, string password, string firstName, string lastName)
@@ -75,14 +76,83 @@ namespace egibi_api.Services
                 EncryptedDataKey = _encryption.GenerateUserKey(),
                 KeyVersion = 1,
                 IsActive = true,
+                IsApproved = false, // Requires admin approval
                 CreatedAt = DateTime.UtcNow
             };
 
             await _db.AppUsers.AddAsync(user);
             await _db.SaveChangesAsync();
 
-            _logger.LogInformation("New user created: {Email}", user.Email);
+            _logger.LogInformation("New user created (pending approval): {Email}", user.Email);
             return (user, null);
+        }
+
+        // =============================================
+        // ACCOUNT APPROVAL
+        // =============================================
+
+        /// <summary>
+        /// Returns all users that are active but not yet approved (pending admin review).
+        /// </summary>
+        public async Task<List<AppUser>> GetPendingUsersAsync()
+        {
+            return await _db.AppUsers
+                .Where(u => u.IsActive && !u.IsApproved && u.RejectedAt == null)
+                .OrderBy(u => u.CreatedAt)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Approves a pending user account. Sets IsApproved = true and records who approved.
+        /// </summary>
+        public async Task<(bool Success, string Error)> ApproveUserAsync(int userId, string approvedByEmail)
+        {
+            var user = await _db.AppUsers.FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+
+            if (user == null)
+                return (false, "User not found.");
+
+            if (user.IsApproved)
+                return (false, "User is already approved.");
+
+            user.IsApproved = true;
+            user.ApprovedAt = DateTime.UtcNow;
+            user.ApprovedBy = approvedByEmail;
+            user.RejectedAt = null;
+            user.RejectedBy = null;
+            user.RejectionReason = null;
+            user.LastModifiedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation("User {Email} approved by {ApprovedBy}.", user.Email, approvedByEmail);
+            return (true, null);
+        }
+
+        /// <summary>
+        /// Rejects a pending user account. Deactivates the account and records the reason.
+        /// </summary>
+        public async Task<(bool Success, string Error)> RejectUserAsync(int userId, string rejectedByEmail, string reason)
+        {
+            var user = await _db.AppUsers.FirstOrDefaultAsync(u => u.Id == userId && u.IsActive);
+
+            if (user == null)
+                return (false, "User not found.");
+
+            if (user.IsApproved)
+                return (false, "Cannot reject an already-approved user.");
+
+            user.IsActive = false;
+            user.RejectedAt = DateTime.UtcNow;
+            user.RejectedBy = rejectedByEmail;
+            user.RejectionReason = reason;
+            user.LastModifiedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation("User {Email} rejected by {RejectedBy}. Reason: {Reason}",
+                user.Email, rejectedByEmail, reason ?? "(none)");
+            return (true, null);
         }
 
         // =============================================
@@ -169,7 +239,7 @@ namespace egibi_api.Services
 
         /// <summary>
         /// Ensures the default admin account exists. Called on startup.
-        /// FIX #2: Admin password is now read from configuration instead of hardcoded.
+        /// Admin accounts are auto-approved (IsApproved = true, ApprovedBy = "System").
         /// </summary>
         public async Task SeedAdminAsync()
         {
@@ -201,6 +271,9 @@ namespace egibi_api.Services
                 EncryptedDataKey = _encryption.GenerateUserKey(),
                 KeyVersion = 1,
                 IsActive = true,
+                IsApproved = true,
+                ApprovedAt = DateTime.UtcNow,
+                ApprovedBy = "System",
                 CreatedAt = DateTime.UtcNow
             };
 

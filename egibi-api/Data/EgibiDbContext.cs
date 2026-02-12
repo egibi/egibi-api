@@ -96,6 +96,12 @@ namespace egibi_api.Data
             //    .WithOne(a => a.Account)
             //    .HasForeignKey<AccountStatusDetails>(a => a.AccountId);
 
+            // AccessRequest — unique email constraint (one pending request per email)
+            modelBuilder.Entity<AccessRequest>(entity =>
+            {
+                entity.HasIndex(e => e.Email);
+            });
+
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<ConnectionType>().HasData(DbSetup.GetConnectionTypes());
@@ -137,5 +143,6 @@ namespace egibi_api.Data
         public DbSet<TimeZone> TimeZones { get; set; }
         public DbSet<AccountFeeStructureDetails> AccountFeeStructureDetails { get; set; }
         public DbSet<UserPlaidConfig> UserPlaidConfigs { get; set; }
+        public DbSet<AccessRequest> AccessRequests { get; set; }
     }
 }

@@ -34,3 +34,6 @@ desktop.ini
 # === Separate repos ===
 egibi-ui/
 /egibi-api/appsettings.Development.json
+/egibi-api/appsettings.Production.json
+/egibi-api/appsettings.json
+/egibi-api/appsettings.Production.json

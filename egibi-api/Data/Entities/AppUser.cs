@@ -91,6 +91,46 @@ namespace egibi_api.Data.Entities
         /// </summary>
         public string EncryptedRecoveryCodes { get; set; }
 
+        // =============================================
+        // ACCOUNT APPROVAL
+        // =============================================
+
+        /// <summary>
+        /// Whether the account has been approved by an administrator.
+        /// New self-registered accounts default to false. Admin-created and seeded accounts are auto-approved.
+        /// Users cannot log in until this is true.
+        /// </summary>
+        public bool IsApproved { get; set; } = false;
+
+        /// <summary>
+        /// UTC timestamp when the account was approved.
+        /// </summary>
+        public DateTime? ApprovedAt { get; set; }
+
+        /// <summary>
+        /// Email or identifier of the admin who approved the account.
+        /// "System" for auto-approved accounts (admin seed, admin-created users).
+        /// </summary>
+        [MaxLength(256)]
+        public string ApprovedBy { get; set; }
+
+        /// <summary>
+        /// UTC timestamp when the account was rejected (if applicable).
+        /// </summary>
+        public DateTime? RejectedAt { get; set; }
+
+        /// <summary>
+        /// Email or identifier of the admin who rejected the account.
+        /// </summary>
+        [MaxLength(256)]
+        public string RejectedBy { get; set; }
+
+        /// <summary>
+        /// Optional reason provided by the admin when rejecting an account.
+        /// </summary>
+        [MaxLength(1000)]
+        public string RejectionReason { get; set; }
+
         /// <summary>
         /// Navigation: all credential sets belonging to this user.
         /// </summary>

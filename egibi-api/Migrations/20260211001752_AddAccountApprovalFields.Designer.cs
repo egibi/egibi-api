@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using egibi_api.Data;
@@ -11,9 +12,11 @@ using egibi_api.Data;
 namespace egibi_api.Migrations
 {
     [DbContext(typeof(EgibiDbContext))]
-    partial class EgibiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260211001752_AddAccountApprovalFields")]
+    partial class AddAccountApprovalFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -230,65 +233,6 @@ namespace egibi_api.Migrations
                     b.ToTable("OpenIddictTokens", (string)null);
                 });
 
-            modelBuilder.Entity("egibi_api.Data.Entities.AccessRequest", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("DenialReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<DateTime?>("EmailVerificationExpiresAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("EmailVerificationToken")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("EmailVerifiedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("FirstName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("LastName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("ReviewedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("ReviewedByUserId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Email");
-
-                    b.ToTable("AccessRequest", (string)null);
-                });
-
             modelBuilder.Entity("egibi_api.Data.Entities.Account", b =>
                 {
                     b.Property<int>("Id")
@@ -480,7 +424,7 @@ namespace egibi_api.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 12, 12, 56, 45, 724, DateTimeKind.Utc).AddTicks(172),
+                            CreatedAt = new DateTime(2026, 2, 11, 0, 17, 52, 451, DateTimeKind.Utc).AddTicks(8589),
                             Description = "Stock brokerage account",
                             IsActive = true,
                             Name = "Stock Broker"
@@ -488,7 +432,7 @@ namespace egibi_api.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 2, 12, 12, 56, 45, 724, DateTimeKind.Utc).AddTicks(177),
+                            CreatedAt = new DateTime(2026, 2, 11, 0, 17, 52, 451, DateTimeKind.Utc).AddTicks(8592),
                             Description = "Market data provider account",
                             IsActive = true,
                             Name = "Data Provider"
@@ -496,7 +440,7 @@ namespace egibi_api.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 2, 12, 12, 56, 45, 724, DateTimeKind.Utc).AddTicks(178),
+                            CreatedAt = new DateTime(2026, 2, 11, 0, 17, 52, 451, DateTimeKind.Utc).AddTicks(8593),
                             Description = "Banking and funding provider account",
                             IsActive = true,
                             Name = "Funding Provider"
@@ -504,7 +448,7 @@ namespace egibi_api.Migrations
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2026, 2, 12, 12, 56, 45, 724, DateTimeKind.Utc).AddTicks(179),
+                            CreatedAt = new DateTime(2026, 2, 11, 0, 17, 52, 451, DateTimeKind.Utc).AddTicks(8595),
                             Description = "Custom account configuration",
                             IsActive = true,
                             Name = "Custom"
@@ -1712,6 +1656,93 @@ namespace egibi_api.Migrations
                     b.HasIndex("ConnectionId");
 
                     b.ToTable("FundingSource", (string)null);
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.InviteCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("UsedByUserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("InviteCode", (string)null);
+                });
+
+            modelBuilder.Entity("egibi_api.Data.Entities.InviteRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int?>("InviteCodeId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email");
+
+                    b.ToTable("InviteRequest", (string)null);
                 });
 
             modelBuilder.Entity("egibi_api.Data.Entities.Market", b =>
