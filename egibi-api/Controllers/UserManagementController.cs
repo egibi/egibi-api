@@ -35,11 +35,6 @@ namespace egibi_api.Controllers
             return int.Parse(sub ?? throw new UnauthorizedAccessException("No subject claim found"));
         }
 
-        private string GetCurrentUserEmail()
-        {
-            return User.FindFirstValue(Claims.Email) ?? "admin";
-        }
-
         // =============================================
         // LIST USERS
         // =============================================
@@ -62,12 +57,6 @@ namespace egibi_api.Controllers
                         LastName = u.LastName,
                         Role = u.Role,
                         IsActive = u.IsActive,
-                        IsApproved = u.IsApproved,
-                        ApprovedAt = u.ApprovedAt,
-                        ApprovedBy = u.ApprovedBy,
-                        RejectedAt = u.RejectedAt,
-                        RejectedBy = u.RejectedBy,
-                        RejectionReason = u.RejectionReason,
                         CreatedAt = u.CreatedAt,
                         LastModifiedAt = u.LastModifiedAt
                     })
@@ -101,12 +90,6 @@ namespace egibi_api.Controllers
                         LastName = u.LastName,
                         Role = u.Role,
                         IsActive = u.IsActive,
-                        IsApproved = u.IsApproved,
-                        ApprovedAt = u.ApprovedAt,
-                        ApprovedBy = u.ApprovedBy,
-                        RejectedAt = u.RejectedAt,
-                        RejectedBy = u.RejectedBy,
-                        RejectionReason = u.RejectionReason,
                         CreatedAt = u.CreatedAt,
                         LastModifiedAt = u.LastModifiedAt
                     })
@@ -125,7 +108,7 @@ namespace egibi_api.Controllers
         }
 
         // =============================================
-        // CREATE USER (admin-initiated — auto-approved)
+        // CREATE USER (admin-initiated)
         // =============================================
 
         [HttpPost("users")]
@@ -155,16 +138,10 @@ namespace egibi_api.Controllers
                 if (role != UserRoles.User)
                 {
                     user.Role = role;
+                    await _db.SaveChangesAsync();
                 }
 
-                // Admin-created users are auto-approved
-                user.IsApproved = true;
-                user.ApprovedAt = DateTime.UtcNow;
-                user.ApprovedBy = GetCurrentUserEmail();
-
-                await _db.SaveChangesAsync();
-
-                _logger.LogInformation("Admin created user {Email} with role {Role} (auto-approved)", user.Email, role);
+                _logger.LogInformation("Admin created user {Email} with role {Role}", user.Email, role);
 
                 return new RequestResponse(new UserSummaryDto
                 {
@@ -174,9 +151,6 @@ namespace egibi_api.Controllers
                     LastName = user.LastName,
                     Role = user.Role,
                     IsActive = user.IsActive,
-                    IsApproved = user.IsApproved,
-                    ApprovedAt = user.ApprovedAt,
-                    ApprovedBy = user.ApprovedBy,
                     CreatedAt = user.CreatedAt
                 }, 201, "User created");
             }
@@ -244,9 +218,6 @@ namespace egibi_api.Controllers
                     LastName = user.LastName,
                     Role = user.Role,
                     IsActive = user.IsActive,
-                    IsApproved = user.IsApproved,
-                    ApprovedAt = user.ApprovedAt,
-                    ApprovedBy = user.ApprovedBy,
                     CreatedAt = user.CreatedAt,
                     LastModifiedAt = user.LastModifiedAt
                 }, 200, "User updated");
@@ -313,6 +284,61 @@ namespace egibi_api.Controllers
         }
 
         // =============================================
+        // DELETE USER (permanent)
+        // =============================================
+
+        /// <summary>
+        /// Permanently deletes a user and any associated access requests for
+        /// that email address. This allows the email to be used for a new signup.
+        /// Admins cannot delete their own account.
+        /// </summary>
+        [HttpDelete("users/{id}")]
+        public async Task<RequestResponse> DeleteUser(int id)
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+                if (id == currentUserId)
+                    return new RequestResponse(null, 400, "You cannot delete your own account");
+
+                var user = await _db.AppUsers.FirstOrDefaultAsync(u => u.Id == id);
+                if (user == null)
+                    return new RequestResponse(null, 404, "User not found");
+
+                var email = user.Email;
+
+                // Remove any access requests for this email so the user can sign up again
+                var accessRequests = await _db.AccessRequests
+                    .Where(ar => ar.Email == email)
+                    .ToListAsync();
+
+                if (accessRequests.Any())
+                {
+                    _db.AccessRequests.RemoveRange(accessRequests);
+                }
+
+                // Remove the user
+                _db.AppUsers.Remove(user);
+
+                await _db.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Admin permanently deleted user {UserId} ({Email}). Removed {AccessRequestCount} associated access request(s).",
+                    id, email, accessRequests.Count);
+
+                return new RequestResponse(
+                    new { deletedUserId = id, email, accessRequestsRemoved = accessRequests.Count },
+                    200,
+                    $"User '{email}' permanently deleted.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete user {UserId}", id);
+                return new RequestResponse(null, 500, "Failed to delete user", new ResponseError(ex));
+            }
+        }
+
+        // =============================================
         // RESET USER PASSWORD (admin-initiated)
         // =============================================
 
@@ -345,91 +371,6 @@ namespace egibi_api.Controllers
                 return new RequestResponse(null, 500, "Failed to reset password", new ResponseError(ex));
             }
         }
-
-        // =============================================
-        // ACCOUNT APPROVAL
-        // =============================================
-
-        /// <summary>
-        /// Returns all users that are pending admin approval.
-        /// </summary>
-        [HttpGet("pending-users")]
-        public async Task<RequestResponse> GetPendingUsers()
-        {
-            try
-            {
-                var pending = await _userService.GetPendingUsersAsync();
-
-                var dtos = pending.Select(u => new PendingUserDto
-                {
-                    Id = u.Id,
-                    Email = u.Email,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    CreatedAt = u.CreatedAt
-                }).ToList();
-
-                return new RequestResponse(dtos, 200, "OK");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to get pending users");
-                return new RequestResponse(null, 500, "Failed to retrieve pending users", new ResponseError(ex));
-            }
-        }
-
-        /// <summary>
-        /// Approves a pending user account.
-        /// </summary>
-        [HttpPost("approve-user")]
-        public async Task<RequestResponse> ApproveUser([FromBody] ApproveUserRequest request)
-        {
-            try
-            {
-                if (request?.UserId <= 0)
-                    return new RequestResponse(null, 400, "Valid UserId is required");
-
-                var adminEmail = GetCurrentUserEmail();
-                var (success, error) = await _userService.ApproveUserAsync(request.UserId, adminEmail);
-
-                if (!success)
-                    return new RequestResponse(null, 400, error);
-
-                return new RequestResponse(null, 200, "User approved");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to approve user {UserId}", request?.UserId);
-                return new RequestResponse(null, 500, "Failed to approve user", new ResponseError(ex));
-            }
-        }
-
-        /// <summary>
-        /// Rejects a pending user account.
-        /// </summary>
-        [HttpPost("reject-user")]
-        public async Task<RequestResponse> RejectUser([FromBody] RejectUserRequest request)
-        {
-            try
-            {
-                if (request?.UserId <= 0)
-                    return new RequestResponse(null, 400, "Valid UserId is required");
-
-                var adminEmail = GetCurrentUserEmail();
-                var (success, error) = await _userService.RejectUserAsync(
-                    request.UserId, adminEmail, request.Reason);
-
-                if (!success)
-                    return new RequestResponse(null, 400, error);
-
-                return new RequestResponse(null, 200, "User rejected");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to reject user {UserId}", request?.UserId);
-                return new RequestResponse(null, 500, "Failed to reject user", new ResponseError(ex));
-            }
-        }
     }
 
     // =============================================
@@ -444,34 +385,8 @@ namespace egibi_api.Controllers
         public string LastName { get; set; }
         public string Role { get; set; }
         public bool IsActive { get; set; }
-        public bool IsApproved { get; set; }
-        public DateTime? ApprovedAt { get; set; }
-        public string ApprovedBy { get; set; }
-        public DateTime? RejectedAt { get; set; }
-        public string RejectedBy { get; set; }
-        public string RejectionReason { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastModifiedAt { get; set; }
-    }
-
-    public class PendingUserDto
-    {
-        public int Id { get; set; }
-        public string Email { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
-
-    public class ApproveUserRequest
-    {
-        public int UserId { get; set; }
-    }
-
-    public class RejectUserRequest
-    {
-        public int UserId { get; set; }
-        public string Reason { get; set; }
     }
 
     public class AdminCreateUserRequest
